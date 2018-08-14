@@ -1,0 +1,726 @@
+<apex:page showHeader="true" sidebar="false" controller="Zendesk.BulkSyncMainCtrl" action="{!redirectToMonitor}">
+    <c:RedirectToTermsAndConditions />
+    <c:AnalyticsRemoteSiteSetup />
+
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery/1.12.3/jquery.min.js')}" />
+	<apex:includeScript value="/soap/ajax/36.0/connection.js"/>
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__slds, 'assets/styles/salesforce-lightning-design-system.min.css')}" />
+
+	<style>
+		.main-content{
+			min-height: 500px;
+		}
+		.header-text{
+			width: 400px;
+			height: 22px;
+			font-size: 18px;
+			font-weight: 300;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+		}
+		.rectangle-1 {
+			display: inline-block;
+			border-radius: 2px;
+			background-color: #dbe9f7;
+			border: solid 1px #8db9e0;
+			margin-top: 20px;
+		}
+		.warning-1 {
+			font-family: ArialMT;
+			font-size: 12px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+			padding: 10px;
+		}
+
+		.warning-1 span {
+			vertical-align: top;
+		}
+
+		.slds-icon { 
+			fill: #0070d2; 
+		}
+		.help-text {
+			width: 700px;
+			height: 15px;
+			font-family: ArialMT;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #999999;
+			vertical-align: sub;
+		}
+		.color-text {
+			color: #999999;
+		}
+		.color-warning {
+			color: #c23934;
+		}
+
+		.item-margin {
+			margin-top: 8px;
+		}
+		.footer {
+			padding-left: 10px;
+		}
+		.footer-left {
+			float: left;
+			width: 75%;
+		}
+		.footer-right {
+			float:left;
+			width: 25%;
+			text-align: right;
+		}
+		.footer-text {
+			width: 38px;
+			height: 14px;
+			font-size: 12px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #0070d2;
+			vertical-align: middle;
+		}
+		.footer-settings {
+			margin-left: 26px;
+		}
+		.error {
+			border: solid 1px #FF0000;
+		}
+		.slds-modal__container {
+			height: 20%;
+			margin-top: 25%;
+		}
+		.spinner-text {
+			transform: translate(135%, -10%) rotate(270deg);
+		}
+		hr { 
+		    width: 60%;
+			height: 1px;
+			margin-top: 30px;
+			background-color: #f3f3f3;
+		}
+
+		.account-org-warning {
+			fill: #c43934;
+		}
+
+		.spinner-container {
+			background-color: #fff;
+			opacity: 0.8;
+		}
+		.color-red {
+			color: red;
+		}
+
+	</style>
+	
+	<script>
+		(function(j$) {
+			Visualforce.remoting.timeout = 120000; //Set remoting time out to 120s to allow remoteAction to return
+			Visualforce.remoting.buffer = false;
+			sforce.connection.sessionId = "{!$Api.Session_ID}";
+			var PREFIX = '';
+			var syncSettings = {};
+			var isMultiOrgEnabled = false;
+
+			j$(document).ready(function() {
+				//start spinner
+				j$('div#spinner').show();
+				//--------- NAV BAR -----------------------
+				j$("span#syncSetup").removeClass("step-grey");
+				j$("span#syncSetup").addClass("step-current");
+
+				//--------- PRE-LOAD FUNCTION -------------
+				loadPrefix();
+				// loadPicklistValues();
+
+				//---------- IN-PAGE ACTION ---------------
+				
+				//Source of truth only available when Sync Direction is Both
+				//Only Full sync available in sync mode when sync direction is Both and Salesforce to Zendesk
+				j$('select#SyncDirectionPicklist').change(function(){
+					j$("input[name='CreateRecord']:checked").removeAttr("checked");
+					j$( "select#SyncDirectionPicklist option:selected" ).each(function() {
+				      if(j$(this).text() == 'Both') {
+				      	j$('div#SourceOfTruthWrapper').show();
+				      	j$("select#SyncModePicklist option[value='Import only']").remove();
+				      	j$("select#SyncModePicklist select").val("Full sync");
+				      	j$("#CreateNewRecordWrapper .slds-radio").show();
+				      	j$("select#SyncModePicklist").trigger("change");
+				      } else if(j$(this).text() == 'Zendesk to Salesforce') {
+				      	j$('div#SourceOfTruthWrapper').hide();
+				      	j$("input:radio[name='SourceOfTruth']:checked").removeAttr("checked");
+				      	var option = new Option('Import only', 'Import only');
+				      	j$('select#SyncModePicklist').append(j$(option));
+				      	j$("#CreateNewRecordWrapper .slds-radio").show();
+				      } else if(j$(this).text() == 'Salesforce to Zendesk') {
+				      	j$("select#SyncModePicklist option[value='Import only']").remove();
+				      	j$("select#SyncModePicklist select").val("Full sync");
+				      	j$('div#SourceOfTruthWrapper').hide();
+				      	j$("input:radio[name='SourceOfTruth']:checked").removeAttr("checked");
+				      	j$("#CreateNewRecordWrapper .slds-radio[id!='CreateNewRecordZDWrap'][id!='CreateNewRecordNoneWrap']").hide();
+				      	j$("select#SyncModePicklist").trigger("change");
+				      }
+				    });
+				});
+
+				//Source of truth, update previous value, create new record not available for import only
+				j$('select#SyncModePicklist').change(function(){
+					j$("select#SyncModePicklist option:selected").each(function(){
+						if(j$(this).text() == 'Full sync') {
+							j$('div#CreateNewRecordWrapper').show();
+						} else if(j$(this).text() == 'Import only') {
+							j$('div#CreateNewRecordWrapper').hide();
+							j$("input:radio[name='CreateRecord']:checked").removeAttr("checked");
+							j$("input:radio[name='UpdatePrev']:checked").removeAttr("checked");
+						}
+					});
+				});
+
+				//Start sync button clicked
+				j$('button#StartSyncButton').click(function(){
+					onStartSyncButtonClick();
+				});
+
+				//Stop spinner
+				j$('div#spinner').hide();
+
+				// Upon checking External Id Warning
+				j$('input#external-id-risk-ok').change(function(){
+					if (this.checked) {
+						j$('button#external-id-warning-start-sync').removeAttr('disabled');
+					} else {
+						j$('button#external-id-warning-start-sync').attr('disabled', 'disabled');
+					}
+				});
+
+				j$('button.cancel-sync').click(function(){
+					j$('div#warningDialogue').hide();
+					j$('div#externalIDWarning').hide();
+					enableStartSyncButton();
+				});
+
+				j$('button#external-id-warning-start-sync').click(function(){
+					j$('div#externalIDWarning').hide();
+					dismissExternalIDWarning();
+					startJob();
+				});
+
+				j$('button#modalContinue').click(function(){
+					j$('div#warningDialogue').hide();
+					if (isDontShowWarningChecked()) {
+						dismissSyncSetupWarning();
+					}
+					showExternalIdWarning();
+				});
+
+				// show multi org info
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.BulkSyncMainCtrl.isMultiOrgEnabled}',
+					function(response, event){
+						isMultiOrgEnabled = response;
+						displayMultiOrgInfo();
+					}
+				);
+
+				j$("#contact-and-user-checkbox, #lead-and-user-checkbox").change(function() {
+					displayMultiOrgInfo();
+				});
+			});
+
+			//-------------------------- Functions -----------------------------------------
+			function displayMultiOrgInfo() {
+				var showMultiOrgInfo = j$("#contact-and-user-checkbox").is(":checked") || j$("#lead-and-user-checkbox").is(":checked");
+				if (showMultiOrgInfo) {
+					j$("div#multi-org-info").show();
+				} else {
+					j$("div#multi-org-info").hide();
+				}
+				if (isMultiOrgEnabled === true) {
+					j$("div#multi-org-info span#enabled-description").show();
+				} else {
+					j$("div#multi-org-info span#disabled-description").show();
+				}
+			}
+			function onStartSyncButtonClick() {
+				disableStartSyncButton();
+
+				// if form is not valid, do nothing
+				if (!validate()) {
+					enableStartSyncButton();
+					return;
+				}
+
+				// check sync settings
+				loadSyncSettings();
+			}
+
+			function disableStartSyncButton() {
+				j$('button#StartSyncButton').attr('disabled', 'disabled');
+			}
+
+			function enableStartSyncButton() {
+				j$('button#StartSyncButton').removeAttr('disabled');
+			}
+
+			function loadSyncSettings() {
+				j$('div#spinner').show();
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.BulkSyncMainCtrl.getSyncSettings}',
+					getSalesforceObjectsToSync().join(),
+					function(response, event){
+						syncSettings = response;
+						j$('div#spinner').hide();
+						showSyncSetupWarning();
+					}
+				);
+			}
+
+			function getSalesforceObjectsToSync() {
+				var syncObjects = getSyncObjects();
+				var salesforceObjects = [];
+				for (var i =0; i < syncObjects.length; i++) {
+					salesforceObjects.push(syncObjects[i].split(' and ')[0]);
+				}
+				return salesforceObjects
+			}
+
+			function showSyncSetupWarning() {
+				if (syncSettings.showSyncSetupWarning && !syncSettings.isSyncSetupOK) {
+					j$('div#warningDialogue').show()
+				} else {
+					showExternalIdWarning()
+				}
+			}
+
+			function showExternalIdWarning() {
+				unCheckExternalIDWarningCheckbox();
+				if (syncSettings.showExternalIDWarning && !isImportOnly()) {
+					j$('div#externalIDWarning').show()
+				} else {
+					startJob()
+				}
+			}
+
+			function isDontShowWarningChecked() {
+				return j$('input#dont-show-warning').is(':checked');
+			}
+
+			function dismissSyncSetupWarning() {
+				syncSettings.showSyncSetupWarning = false;
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.BulkSyncMainCtrl.dismissSyncSetupWarning}',
+					function(result, event){});
+			}
+
+			function dismissExternalIDWarning() {
+				syncSettings.showExternalIDWarning = false;
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.BulkSyncMainCtrl.dismissExternalIDWarning}',
+					function(result, event){});
+			}
+
+			function unCheckExternalIDWarningCheckbox() {
+				j$('input#external-id-risk-ok').attr('checked', false);
+			}
+
+			function isImportOnly() {
+				return j$("select#SyncModePicklist").val() == 'Import only';
+			}
+
+			function setupPicklists () {
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncMainCtrl.setupPicklists}', function(result, event) {
+					if(result == '') {		// no need to setup
+						loadPicklistValues();
+					} else if(result == 'Success' || result == 'Refresh') {
+						location.reload();
+					} else {	// successful setup
+						alert(result);
+					}
+				});
+ 			}
+
+			function loadPrefix () {
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncMainCtrl.getPrefix}', function(result, event) {
+					if (event.status) {
+						PREFIX = result;
+						setupPicklists();
+					}
+				});
+			}
+
+			function loadPicklistValues () {
+				var result = sforce.connection.describeSObject(PREFIX + 'Zendesk_Sync_Job__c');
+
+				for (var i = 0; i < result.fields.length; i++) {
+					switch (result.fields[i].name) {
+						case PREFIX + 'Sync_Direction__c':
+							var field = result.fields[i];
+							for (var j = 0; j < field.picklistValues.length; j++) {
+								var option = new Option(field.picklistValues[j].value, field.picklistValues[j].value);
+								j$('#SyncDirectionPicklist').append(j$(option));
+							}
+							break;
+						case PREFIX + 'Sync_Mode__c':
+							var field = result.fields[i];
+							for (var j = 0; j < field.picklistValues.length; j++) {
+								var option = new Option(field.picklistValues[j].value, field.picklistValues[j].value);
+								j$('#SyncModePicklist').append(j$(option));
+							}
+							break;
+					}
+				}
+			}
+
+			function getSyncObjects() {
+				var syncObjectSettings = [];
+				j$("#syncObjectSettingsWrapper input:checked").each(function() {
+					syncObjectSettings.push(j$(this).attr("value"));
+				});
+
+				return syncObjectSettings;
+			}
+
+			function startJob() {
+				//start spinner
+				j$('div#spinner').show();
+				//Sync Object Settings
+				var syncObjectSettings = getSyncObjects();
+
+				//Gather input
+				var payload = {
+					[PREFIX+'Sync_Direction__c']: j$("select#SyncDirectionPicklist option:selected").text(),
+					//[PREFIX+'Sync_Objects__c'] : j$("select#DataToSyncPicklist option:selected").text(),
+					[PREFIX+'Sync_Object_Settings__c']: syncObjectSettings.join(';'),
+					[PREFIX+'Sync_Mode__c'] : j$("select#SyncModePicklist option:selected").text(),
+					[PREFIX+'Source_of_Truth__c'] : j$("input:radio[name='SourceOfTruth']:checked").val(),
+					[PREFIX+'Create_record_in__c'] : j$("input:radio[name='CreateRecord']:checked").val()
+				};
+				//Send the payload
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncMainCtrl.createJob}',JSON.stringify(payload), function(result, event){
+					if(event.status){
+						if (typeof(result.errorMessage)!== 'undefined' && result.errorMessage !== '' && result.errorMessage !== null) {
+							alert (result.errorMessage);
+							j$('div#spinner').hide();
+						}else if (typeof(result.jobID)!== 'undefined' && result.jobID !== '' && result.jobID !== null) {
+							var jobID = result.jobID;
+							Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncMainCtrl.startJob}', function(result,event){
+								if(event.status){
+									navigateToURL('/apex/'+ PREFIX +'BulkSyncMonitor?jobid=' + jobID);
+								}else{
+									alert("Failed to Start Sync Job:");
+								}
+							});
+						}
+					}else{
+						j$('div#spinner').hide();
+					}
+				});
+			}
+
+			function validate() {
+				var validated = true;
+				//If item is visible but not selected
+				if(j$('div#SourceOfTruthWrapper').is(":visible") && typeof(j$("input:radio[name='SourceOfTruth']:checked").val()) == 'undefined'){
+					j$('fieldset#SourceOfTruthFieldSet').addClass('error');
+					validated = false;
+				}else{
+					j$('fieldset#SourceOfTruthFieldSet').removeClass('error');
+				}
+
+				if(j$('div#CreateNewRecordWrapper').is(":visible") && typeof(j$("input:radio[name='CreateRecord']:checked").val()) == 'undefined'){
+					j$('fieldset#CreateNewRecordFieldSet').addClass('error');
+					validated = false;
+				}else{
+					j$('fieldset#CreateNewRecordFieldSet').removeClass('error');
+				}
+
+				if(j$("#syncObjectSettingsWrapper input:checked").length == 0){
+					j$("#syncObjectSettingsWrapper").addClass('error');
+					validated = false;	
+				}else{
+					j$("#syncObjectSettingsWrapper").removeClass('error');
+				}
+				return validated;
+			}
+		})(jQuery);
+	</script>
+
+	<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+	<!-- HTML COMPONENTS -->
+	<c:BulkSyncNav />
+	<div class="main-content slds-m-left--medium slds-is-relative">
+		<!-- SPINNER -->
+		<div id="spinner" class="slds-modal slds-fade-in-open slds-spinner_container spinner-container" style="display: none;">
+			<div class="slds-spinner_container" role="alert">
+				<div aria-role="status" role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand">
+					<div class="slds-spinner__dot-a"></div>
+					<div class="slds-spinner__dot-b"></div>
+					<div class="spinner-text"></div>
+				</div>
+			</div>
+		</div>
+		<!-- END OF SPinner -->
+		<div class="slds-grid">
+			<div class="slds-col">
+				<div class="header-text slds-m-top--medium">Zendesk Support Bulk Sync - Set Up</div>
+				<div class="rectangle-1">
+					<div class="warning-1">
+						<span class="slds-icon_container">
+							<svg aria-hidden="true" class="slds-icon slds-icon-text-warning slds-icon--x-small">
+								<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#warning')}"></use>
+							</svg>
+						</span>
+						<span class="slds-p-horizontal--xx-small">Before creating a sync job, don't forget to set up your field mapping, record filters and auto match settings <a href="{!URLFOR($Page.ZendeskObjectMapping)}">here</a></span>
+					</div>
+				</div>
+
+				<div class="block-margin slds-p-vertical--x-large slds-border--bottom">
+					<div class="slds-form-element__label">Sync direction</div>
+					<div class="slds-select_container slds-size--2-of-6 item-margin"><select id='SyncDirectionPicklist' class="slds-select"></select></div>
+					<div class="help-text color-text item-margin">Select a direction for your bulk sync</div>
+				</div>
+				<div id="syncObjectSettingsWrapper" class="block-margin slds-p-vertical--x-large slds-border--bottom">
+					<div class="slds-form-element__label">Data to sync</div>
+					<!--<div class="slds-select_container slds-size--2-of-6 item-margin"><select id='DataToSyncPicklist' class="slds-select"></select></div>-->
+					<div class="slds-form-element">
+					  <div class="slds-form-element__control">
+						<span class="slds-checkbox">
+						  <input type="checkbox" name="options" value="Account and Organization" id="checkbox-146" checked="" />
+						  <label class="slds-checkbox__label" for="checkbox-146">
+							<span class="slds-checkbox--faux"></span>
+							<span class="slds-form-element__label">Account and Organization</span>
+						  </label>
+						</span>
+					  </div>
+					</div>
+					<div class="slds-form-element">
+					  <div class="slds-form-element__control">
+						<span class="slds-checkbox">
+						  <input type="checkbox" name="options" value="Contact and User" id="contact-and-user-checkbox" checked="" />
+						  <label class="slds-checkbox__label" for="contact-and-user-checkbox">
+							<span class="slds-checkbox--faux"></span>
+							<span class="slds-form-element__label">Contact and User</span>
+						  </label>
+						</span>
+					  </div>
+					</div>
+					<div class="slds-form-element">
+					  <div class="slds-form-element__control">
+						<span class="slds-checkbox">
+						  <input type="checkbox" name="options" value="Lead and User" id="lead-and-user-checkbox" checked="" />
+						  <label class="slds-checkbox__label" for="lead-and-user-checkbox">
+							<span class="slds-checkbox--faux"></span>
+							<span class="slds-form-element__label">Lead and User</span>
+						  </label>
+						</span>
+					  </div>
+					</div>
+					<div class="slds-m-top--x-small">
+						<span class="slds-icon_container slds-m-left--xx-small">
+							<svg aria-hidden="true" class="slds-icon slds-icon-text-warning slds-icon--x-small account-org-warning">
+								<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#warning')}"></use>
+							</svg>
+						</span>
+						<span class="help-text color-warning slds-m-left--xxx-small">It is important that Accounts and Organizations are synced first to ensure that Contacts are associated with the correct Accounts
+						</span>
+					</div>
+					<div class="slds-m-top--x-small" id="multi-org-info" style="display: none;">
+						<span class="slds-icon_container slds-m-left--xx-small">
+							<svg aria-hidden="true" class="slds-icon slds-icon-text-info slds-icon--x-small multi-org-info-icon">
+								<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#info')}"></use>
+							</svg>
+						</span>
+						<span style="display: none;" class="help-text color-info slds-m-left--xxx-small" id="enabled-description">
+							"Multiple organizations" feature is enabled on your Zendesk account and will be used when synching data
+						</span>
+						<span style="display: none;" class="help-text color-info slds-m-left--xxx-small" id="disabled-description">
+							"Multiple organizations" feature is not enabled on your Zendesk account, 
+							refer to the <a target="_blank" href="https://support.zendesk.com/hc/en-us/articles/204281156">manual</a> for details.
+						</span>
+					</div>
+					<div class="help-text color-text item-margin">Select which Zendesk Support and Salesforce data values you would like to sync</div>
+				</div>
+				<div class="block-margin slds-p-vertical--x-large">
+					<div class="slds-form-element__label">Sync Mode</div>
+					<div class="slds-select_container slds-size--2-of-6 item-margin"><select id='SyncModePicklist' class="slds-select"></select></div>
+					<div class="help-text color-text item-margin">Select the type of sync you would like to run</div>
+				</div>
+				<div id='SourceOfTruthWrapper' class="block-margin slds-p-vertical--x-large slds-border--top" style='display: none'>
+					<fieldset id='SourceOfTruthFieldSet' class="slds-form-element">
+						<legend class="slds-form-element__legend slds-form-element__label">In the case of conflicting values, use values from:</legend>
+						<div class="slds-form-element__control">
+							<span class="slds-radio">
+								<input type='radio' id='SourceOfTruthZendesk' name='SourceOfTruth' value='Zendesk Support' checked='' />
+								<label class="slds-radio__label" for='SourceOfTruthZendesk'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">Zendesk Support</span>
+								</label>
+							</span>
+							<span class="slds-radio">
+								<input type='radio' id='SourceOfTruthSFDC' name='SourceOfTruth' value='Salesforce'/>
+								<label class="slds-radio__label" for='SourceOfTruthSFDC'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">Salesforce</span>
+								</label>
+							</span>
+						</div>
+					</fieldset>
+				</div>
+				<div id='CreateNewRecordWrapper' class="block-margin slds-p-vertical--x-large slds-border--top" style='display: none'>
+					<fieldset id="CreateNewRecordFieldSet" class="slds-form-element">
+						<legend class="slds-form-element__legend slds-form-element__label">Create new records in:</legend>
+						<div class="slds-form-element__control">
+							<span class="slds-radio" id="CreateNewRecordZDWrap">
+								<input type='radio' id='CreateNewRecordZD' name='CreateRecord' value='Zendesk Support only' checked='' />
+								<label class="slds-radio__label" for='CreateNewRecordZD'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">Zendesk Support only</span>
+								</label>
+							</span>
+							<span class="slds-radio" id="CreateNewRecordSFDCWrap">
+								<input type='radio' id='CreateNewRecordSFDC' name='CreateRecord' value='Salesforce only'/>
+								<label class="slds-radio__label" for='CreateNewRecordSFDC'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">Salesforce only</span>
+								</label>
+							</span>
+							<span class="slds-radio" id="CreateNewRecordBothWrap">
+								<input type='radio' id='CreateNewRecordBoth' name='CreateRecord' value='Both'/>
+								<label class="slds-radio__label" for='CreateNewRecordBoth'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">Both</span>
+								</label>
+							</span>
+							<span class="slds-radio" id="CreateNewRecordNoneWrap">
+								<input type='radio' id='CreateNewRecordNone' name='CreateRecord' value='None'/>
+								<label class="slds-radio__label" for='CreateNewRecordNone'>
+									<span class="slds-radio--faux"></span>
+									<span class="slds-form-element__label">None</span>
+								</label>
+							</span>
+						</div>
+					</fieldset>
+				</div>
+				<div  id="warningDialogue"  style="display:none">
+					<div role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open">
+					<div class="slds-modal__container">
+						<div class="slds-modal__header">
+						  <button class="slds-button slds-modal__close slds-button--icon-inverse cancel-sync" title="Close">
+							<svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+							  <use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+							</svg>
+							<span class="slds-assistive-text">Close</span>
+						  </button>
+						  <h2 id="header43" class="slds-text-heading--medium">Are you sure you want to continue?</h2>
+						</div>
+						<div class="slds-p-around--medium" style="background:#fff">
+						  <div>
+							<p class="modalText marginBottom15">We noticed that your field mappings, record filters and auto match settings may not be set up. If you continue the sync, your data may not sync correctly.</p>
+						  </div>
+
+						  <div class="slds-m-top--small slds-text-align--right">
+							<span class="slds-checkbox">
+								<input type="checkbox" name="options" id="dont-show-warning" checked="" />
+								<label class="slds-checkbox__label" for="dont-show-warning">
+									<span class="slds-checkbox--faux"></span>
+									<span class="slds-form-element__label slds-m-left--xx-small">
+										Don't show this warning again.
+									</span>
+								</label>
+							</span>
+						  </div>
+						</div>
+						<div class="slds-modal__footer">
+						  <button class="slds-button slds-button--neutral cancel-sync">Cancel</button>
+						  <button class="slds-button slds-button--brand" id="modalContinue">Yes, Continue</button>
+						</div>
+					  </div>
+					</div>
+					<div class="slds-backdrop slds-backdrop--open"></div>
+				</div>
+
+				<!-- EXTERNAL ID Warning -->
+				<div  id="externalIDWarning"  style="display:none">
+					<div role="dialog" tabindex="-1" aria-labelledby="external-id-warning" class="slds-modal slds-fade-in-open">
+					  <div class="slds-modal__container">
+						<div class="slds-modal__header">
+							<button class="slds-button slds-modal__close slds-button--icon-inverse cancel-sync" title="Close">
+								<svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+									<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+								</svg>
+								<span class="slds-assistive-text">Close</span>
+							  </button>
+
+						  <h2 id="external-id-warning" class="slds-text-heading--medium color-red">External ID field warning</h2>
+						</div>
+						<div class="slds-p-horizontal--large slds-p-vertical--medium" style="background:#fff">
+						  <div>
+							<p class="modalText marginBottom15">IMPORTANT: Bulk Sync uses the external ID field in Zendesk Support and could interfere with other applications if they rely on this field. Do you still want to start the sync?</p>
+						  </div>
+						  <div class="slds-m-top--medium">
+							<span class="slds-checkbox">
+								<input type="checkbox" name="options" id="external-id-risk-ok" checked="" />
+								<label class="slds-checkbox__label" for="external-id-risk-ok">
+									<span class="slds-checkbox--faux"></span>
+									<span class="slds-form-element__label slds-m-left--xx-small">
+										I have read this warning and understand that continuing with the sync could affect my other applications.
+									</span>
+								</label>
+							</span>
+						  </div>
+						</div>
+
+						<div class="slds-modal__footer">
+						  <button class="slds-button slds-button--neutral cancel-sync">Cancel</button>
+						  <button class="slds-button slds-button--brand" disabled="disabled" id="external-id-warning-start-sync">Yes, start sync</button>
+						</div>
+					  </div>
+					</div>
+					<div class="slds-backdrop slds-backdrop--open"></div>
+				</div>
+				<!-- END OF EXTERNAL ID Warning -->
+			</div>
+			<div class="slds-col"></div>
+		</div>
+	</div>
+
+
+	<!-- FOOTER -->
+	<div class="footer slds-border--top slds-p-top--large slds-m-bottom--small">
+		<div class="footer-left">
+			<span class="slds-icon_container">
+				<svg aria-hidden="true" class="slds-icon slds-icon--x-small">
+					<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#clock')}"></use>
+				</svg>
+			</span>
+			<span class="footer-text"><a href="{!URLFOR($Page.BulkSyncHistory)}">History</a></span>
+			<span class="slds-icon_container footer-settings">
+				<svg aria-hidden="true" class="slds-icon slds-icon--x-small">
+					<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#settings')}"></use>
+				</svg>
+			</span>
+			<span class="footer-text"><a href="{!URLFOR($Page.ZendeskOrgTab)}">Settings</a></span>
+		</div>
+		<div class="footer-right slds-p-right--small">
+			<span>
+				<button id='ScheduleSyncButton' class="slds-button slds-button--neutral" style="display:none;">Schedule Sync</button>
+			</span>	
+			<span>
+				<button id='StartSyncButton' class="slds-button slds-button--brand">Start Sync</button>
+			</span>
+		</div>
+		<div style="clear: both;" />
+	</div>
+	<!-- END OF FOOTER -->
+	</html>
+</apex:page>

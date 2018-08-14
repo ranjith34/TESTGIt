@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>Auth_Account_Already_Linked</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Account Already Linked</shortDescription>
+        <value>Zendesk Agent is already being used by another user.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Error_Saving_Token</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth_Error_Saving_Token</shortDescription>
+        <value>An error occured while saving token. Please check your logs.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Error_on_Subdomain_Update</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Error on Domain Update</shortDescription>
+        <value>An error occured while updating domain. Please check your logs.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Invalid_Subdomain</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Invalid Domain</shortDescription>
+        <value>Domain is not valid.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_No_Global_Settings</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth No Global Settings</shortDescription>
+        <value>Domain &quot;{0}&quot; should be registered in global settings first.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_No_Linked_Subdomain</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth No Linked Domain</shortDescription>
+        <value>No domains linked.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_No_Subdomain_Provided</fullName>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth No Domain Provided</shortDescription>
+        <value>Please enter a Zendesk Domain.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Requesting_Access_Token</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Requesting Access Token</shortDescription>
+        <value>Requesting token. Please wait.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Subdomain_Already_Linked</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Domain Already Linked</shortDescription>
+        <value>Domain is already linked.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Subdomain_Deletion_Failed</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Domain Deletion Failed</shortDescription>
+        <value>Unable to unlink due to errors. Please check your logs.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Subdomain_Deletion_Successful</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Domain Deletion Successful</shortDescription>
+        <value>Domain unlinked successfully.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Subdomain_Help_Text</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Help Text</shortDescription>
+        <value>Please use your *.zendesk.com URL, not your host-mapped URL.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Subdomain_Update_Success_Message</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Domain Update Success Message</shortDescription>
+        <value>Main domain updated successfully.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Success_Message</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Authentication Success Message</shortDescription>
+        <value>Authentication settings saved successfully.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Unlink_Subdomain_Confirmation</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Unlink Domain Confirmation</shortDescription>
+        <value>Are you sure you want to unlink this domain?</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Unlink_Subdomain_First</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth Unlink Domain First</shortDescription>
+        <value>Please unlink your current domain first before linking to a new one.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_User_Does_Not_Match</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Auth User Does Not Match</shortDescription>
+        <value>The authorized user and the currently logged in user does not match.</value>
+    </labels>
+    <labels>
+        <fullName>Auth_Wait_Message</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Authentication Wait Message</shortDescription>
+        <value>Checking your authentication status. Please wait.</value>
+    </labels>
+    <labels>
+        <fullName>ZGlobalAuth_Title</fullName>
+        <categories>Authentication</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Global Authentication Block Title</shortDescription>
+        <value>Global Authentication</value>
+    </labels>
+</CustomLabels>

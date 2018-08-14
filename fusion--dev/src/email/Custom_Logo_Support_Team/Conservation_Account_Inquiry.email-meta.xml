@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>Conservation Account Inquiry</name>
+    <style>freeForm</style>
+    <subject>RE:  {!Case.Subject}</subject>
+    <textOnly>Thank you for reaching out to YETI!  We are happy to inform you that our Conservation accounts have transitioned to the YETI Fundraising Team.
+
+Effective 7/1/18, please send all inquiries to fundraising@yeti.com. Erin Cooper will be your direct point of contact moving forward.
+
+We are committed to growing our current and future Conservation partnerships and look forward to serving you.
+
+
+Sincerely,
+
+
+{!User.CommunityNickname}
+Business Development Team
+YETI
+512.402.5895
+corporatesales@yeti.com
+yeti.com
+
+
+The YETI Fundraising program exists to serve all qualified nonprofit organizations by providing a genuine unmatched customer experience. We strive to create a YETI presence with our brand and products, maximizing fundraising revenue for the nonprofit organizations we support. We are excited to work with you!</textOnly>
+    <type>html</type>
+</EmailTemplate>

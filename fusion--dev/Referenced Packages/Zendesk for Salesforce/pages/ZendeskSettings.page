@@ -1,0 +1,56 @@
+<apex:page controller="Zendesk.ZendeskSettings" title="Edit Zendesk Support settings" tabStyle="Zendesk__tab">
+<apex:sectionHeader title="Zendesk for Salesforce" subtitle="Personal Settings" />
+<apex:form >
+      <div style="margin-bottom: 10px;" >
+        <apex:pageMessages id="messages" />
+      </div>
+
+      <apex:pageBlock title="Ticket view defaults" mode="edit">
+      
+        <apex:pageBlockButtons location="top">
+          <apex:commandButton action="{!saveSettings}" value="Save & Return"/>
+          <apex:commandButton action="{!goBack}" value="Go Back"/>
+        </apex:pageBlockButtons>
+        
+        <apex:pageBlockSection title="Filtering" columns="1">
+        
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Status Filter" />
+            <apex:selectList value="{!statusFilter}" size="1">
+             <apex:selectOptions value="{!statusFilterOptions}"/>
+            </apex:selectList>
+          </apex:pageBlockSectionItem>
+    
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Priority Filter" />
+            <apex:selectList value="{!priorityFilter}" size="1">
+              <apex:selectOptions value="{!priorityFilterOptions}"/>
+            </apex:selectList>
+          </apex:pageBlockSectionItem>
+    
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Type Filter" />
+            <apex:selectList value="{!typeFilter}" size="1">
+              <apex:selectOptions value="{!typeFilterOptions}"/>
+            </apex:selectList>
+          </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection title="Sorting" columns="1">
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Sort field" />
+            <apex:selectList value="{!sortField}" size="1">
+              <apex:selectOptions value="{!sortColumns}"/>
+            </apex:selectList>
+          </apex:pageBlockSectionItem>
+    
+          <apex:pageBlockSectionItem >
+            <apex:outputLabel value="Sort descending" />
+            <apex:inputCheckbox value="{!sortDesc}"/>
+          </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+      </apex:pageBlock>
+      
+</apex:form>
+      <c:ZendeskPersonalAuthentication pageMessage="messages"/>
+</apex:page>

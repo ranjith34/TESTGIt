@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>Hondo Flow Lines</name>
+    <style>freeForm</style>
+    <subject>RE: {!Case.Subject}.</subject>
+    <textOnly>Hi,
+
+Our Hondo’s are built to last and have gone through a rigorous design, manufacturing and quality process. As a result of the molding process, you may notice what are called flow lines. These are not surface scratches that are a result of assembly or any mishandling, and are not something we can eliminate.
+
+We definitely want to make sure you love your new YETI and much as we do, so please let us know if we can be of any further assistance or if you have any other questions regarding your Hondo.
+
+Kind Regards,
+
+{!User.CommunityNickname}
+The YETI Outfitters
+512.394.9384
+customerservice@yeti.com
+yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

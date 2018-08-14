@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>Tundra Gasket Replacement</name>
+    <style>freeForm</style>
+    <subject>RE:  {!Case.Subject}</subject>
+    <textOnly>Thank you for reaching out to YETI!  I have placed the order for your complimentary Tundra gasket and the video on how to replace it here.
+
+It will be arriving in just a few business days!
+
+
+Once you receive the item, go ahead and follow the instructions in the video to safely replace the gasket.  Feel free to follow up with me personally through this email with the results. If you need any additional assistance, I would be happy to help in any way that I can.
+
+
+We look forward to hearing from you soon!
+
+
+Cheers,
+
+
+
+{!User.CommunityNickname}
+
+The YETI Outfitters
+
+512.394.9384
+
+customerservice@yeti.com
+
+yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

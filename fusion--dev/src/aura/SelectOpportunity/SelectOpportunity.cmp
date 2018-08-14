@@ -1,0 +1,19 @@
+<aura:component controller="OpportunityDetailsController" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId" access="global" >
+    <aura:attribute name="recordId"  type="Id" />
+    <aura:attribute name="options" type="List" />
+   <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+   <aura:attribute name="value" type="String" />
+    <div align="center" >
+    <lightning:radioGroup 
+        aura:id="mygroup"
+        name="Select Existing Opportunities"
+        label="Select Existing Opportunities"
+        options="{! v.options }"
+        value="{! v.value }"
+        onchange="{! c.handleChange }"
+         />
+    </div><br/><br/><br/>
+    <div align="center" >
+    <lightning:button label="Next" onclick="{!c.navigatetoQuoteScreen}" />
+    </div>
+</aura:component>

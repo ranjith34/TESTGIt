@@ -1,0 +1,10 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    <aura:attribute name="UPK" type="string" />
+    <aura:attribute name="jsonData" type="List" />
+    <aura:attribute name="isEdit" type="Boolean" />
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+  <div style ="height: 100%;width:100%;" >
+      <iframe aura:id="vfFrame"  src="/apex/Customizer" onload="{!c.afterLoad}"  style="width: 100%; padding: 0px; margin: 0px; border: none; min-height: 200px; overflow: hidden; height: 628.359px;"  scrolling ="yes" sandbox="allow-same-origin allow-scripts allow-forms"  ></iframe>
+  </div>
+</aura:component>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Quote Line Pricing</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Quote Line Pricings</value>
+    </caseValues>
+    <fields>
+        <label><!-- Actual Amount --></label>
+        <name>Actual_Amount__c</name>
+    </fields>
+    <fields>
+        <label><!-- Calculation Type --></label>
+        <name>Calc_Type__c</name>
+    </fields>
+    <fields>
+        <label><!-- Condition Type --></label>
+        <name>Cond_Type__c</name>
+    </fields>
+    <fields>
+        <label><!-- Condition Value --></label>
+        <name>Cond_Value__c</name>
+    </fields>
+    <fields>
+        <label><!-- Editable --></label>
+        <name>Editable__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Header --></label>
+        <name>Quote_Header__c</name>
+        <relationshipLabel><!-- Quote Line Pricings --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Quote Item Number --></label>
+        <name>Quote_Item_Number__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Item --></label>
+        <name>Quote_Item_level_ID__c</name>
+        <relationshipLabel><!-- Quote Line Pricings --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Short Text --></label>
+        <name>Short_Text__c</name>
+    </fields>
+    <fields>
+        <label><!-- Simulate Flag --></label>
+        <name>Simulate__c</name>
+    </fields>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

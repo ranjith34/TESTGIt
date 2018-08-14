@@ -1,0 +1,57 @@
+<aura:component controller="TopProductsApxc" implements="flexipage:availableForAllPageTypes">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:attribute name="topProducts" type="TopProducts__c[]" />
+    <aura:registerEvent name="selectedProductEvt" type="c:TopProducts"/>
+    <div >
+    <!--h3 class="slds-section__title slds-theme_shade">
+        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">TOP SELLERS</span>
+    </h3-->
+    <!--div class="slds-section slds-is-open slds-grid slds-gutters">
+        <ul class="slds-list_horizontal slds-has-block-links_space" >
+            <aura:iteration items="{!v.topProducts}" var="con">
+                 <div >
+                <lightning:button name="{!con.Id}" title="ADD" 
+                                  class="slds-button slds-button_neutral slds-button_stateful slds-not-selected images-div" onclick="{!c.register}"><br/>
+                    <img src="{!con.ProductURL__c}" width = "30" height = "30">
+                    </img><div class="clr images-div">Add</div> 
+                </lightning:button>&nbsp;&nbsp;
+<div class="slds-align_absolute-center name">&nbsp;<b>{!con.ProductName__c}</b>&nbsp;</div>  
+                </div>
+            </aura:iteration>  
+        </ul>
+    </div-->
+    <div class="slds-section slds-is-open slds-grid slds-gutters slds-align_absolute-center Container">
+        <!--ul class="slds-list_horizontal slds-has-block-links_space">
+        <aura:iteration items="{!v.topProducts}" var="con">
+            <lightning:button name="{!con.Id}" title="ADD" 
+                                  class="slds-button slds-button_neutral slds-button_stateful slds-not-selected images-div" label="ADD" onclick="{!c.register}"><br/>
+               ADD<br/> <b>{!con.ProductName__c}</b>
+                </lightning:button>&nbsp;&nbsp;
+  <div class="slds-align_absolute-center">&nbsp;&nbsp;<b>{!con.ProductName__c}</b>&nbsp;&nbsp;</div>
+            </aura:iteration>      
+        </ul-->
+        &nbsp;&nbsp;<table class="slds-table slds-border_top slds-border_bottom slds-border_right slds-border_left slds-max-medium-table_stacked-horizontal add-div" >
+            <tbody>
+                
+                <tr class="slds-list_horizontal slds-text-title_caps slds-grid slds-wrap">
+                    <aura:iteration items="{!v.topProducts}" var="con">
+                        <div class="{!('slds-size_1-of-')+(v.topProducts.length)}"  >
+                            <td scope="col" class="slds-table_cell-buffer add-div" >
+                                <lightning:button name="{!con}" title="ADD" 
+                                                  class="slds-button slds-button_neutral slds-button_stateful slds-not-selected images-div add-div buttonwidth" onclick="{!c.register}"  ><br/>
+                                    <img src="{!con.ProductURL__c}" style="height: 100px;">
+                                    </img><!--span class="slds-badge clr images-div"><u><b>ADD</b></u></span-->
+                                    <div class="clr images-div"><u><b>ADD</b></u></div>
+                                </lightning:button>&nbsp; 
+                                 <div class="slds-align_absolute-center name">&nbsp;<b>{!con.ProductName__c}</b>&nbsp;</div>  
+
+                            </td> 
+                    </div>
+                    </aura:iteration>
+                </tr>
+                
+            </tbody>
+        </table>
+    </div>
+        </div>
+</aura:component>

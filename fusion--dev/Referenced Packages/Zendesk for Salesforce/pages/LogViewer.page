@@ -1,0 +1,297 @@
+<apex:page sidebar="false" controller="Zendesk.LogViewerCtrl">
+    <apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery/1.12.3/jquery.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/1.10.12/js/jquery.dataTables.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+    <apex:includeScript value="/soap/ajax/36.0/connection.js"/>
+
+    <apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.css')}" />
+    <apex:slds />
+
+    <style>
+        #log-table_info {
+            margin-top: 1.5em;
+        }
+        #log-table_wrapper {
+            min-height: 450px;
+        }
+
+        #delete-all-button {
+            float: right;
+        }
+
+        #log-table_length, #log-table_paginate {
+            text-align: right;
+        }
+
+        .paginate_button {
+            margin-right: 0.5em;
+        }
+
+        .viewer {
+            min-height: 400px;
+        }
+
+        td.dataTables_empty {
+            text-align: center;
+        }
+
+        .dataTables_filter input {
+            margin-left: 5px;
+            -webkit-appearance: none;
+            padding-left: .5rem;
+            padding-right: 1.5rem;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            border: 1px solid #d8dde6;
+            border-radius: .25rem;
+        }
+
+        #log-table_filter {
+            margin-top: 10px;
+        }
+    </style>
+
+    <script>
+        (($) => {
+            var fields = {};
+            var logTable = null;
+            $(document).ready(() => {
+                getLogFieldsToDisplay().then(() => {
+                    constructTableHeader();
+                });
+
+                initializeFilters().then(() => {
+                    populateLogTable();
+                });
+
+                addDeleteEntriesListener();
+            });
+            
+            function populateLogTable() {
+                spinner().show();
+                var filters = getSelectedFilters();
+                Visualforce.remoting.Manager.invokeAction('{! $RemoteAction.LogViewerCtrl.getLogRecords }',
+                    filters,
+                    function(records, event) {
+                        if (event.status) {
+                            renderTable(records);
+                        } else {
+                            alert('Exception: ' + event.message + ' (StatusCode: '+ event.statusCode +')');
+                            renderTable([]);
+                        }
+                    });
+            }
+
+            function renderTable(records) {
+                if (logTable != null) {
+                    logTable.clear();
+                    $('.table-body').empty();
+                } else {
+                    logTable = $('#log-table').DataTable( {
+                        "searching": true,
+                        "pagingType": "full_numbers",
+                        "ordering": true,
+                        "createdRow": function(row, data, dataIndex) {
+                            addDeleteLinkListener($('.delete-link', $(row)));
+                        }
+                    });
+                }
+
+                var stringMaxLength = 70;
+                var rows = [];
+                records.forEach((record, index, array) => {
+                    var row = [];
+                    var actionLinks = getRecordViewLink(record) + ' | ' + getRecordDeleteLink(record);
+                    row.push(actionLinks);
+                    for (var key in fields) {
+                        var actualFieldName = fields[key];
+                        var fieldValue = record[actualFieldName];
+
+                        if (fieldValue != null) {
+                            truncatedFieldValue = fieldValue.length > stringMaxLength ? fieldValue.substr( 0, stringMaxLength ) +'…' : fieldValue;
+                            row.push('<span class="slds-truncate" title="'+ fieldValue +'">' + truncatedFieldValue + '<span>');
+                        } else {
+                            row.push('');
+                        }
+                    }
+                    rows.push(row);
+                });
+                logTable.rows.add(rows).draw();
+                spinner().hide();
+            }
+
+            function addDeleteLinkListener($deleteLink) {
+                $deleteLink.click(function() {
+                    var okayToDelete = confirm('Are you sure you want to delete this record?');
+                    if (okayToDelete) {
+                        var recordId = $(this).data('record-id');
+                        Visualforce.remoting.Manager.invokeAction('{! $RemoteAction.LogViewerCtrl.deleteLogRecord }', recordId, 
+                            function(result, event) {
+                                if (!event.status) {
+                                    alert('Exception: ' + event.message + ' (StatusCode: '+ event.statusCode +')');
+                                }
+                            });
+                        logTable.row($(this).parents('tr')).remove().draw(false);
+                    }
+                });
+            }
+
+            function addDeleteEntriesListener() {
+                $('#delete-all-button').click(function() {
+                    var okayToDelete = confirm('Are you sure you want to delete all entries?');
+                    if (okayToDelete) {
+                        var filters = getSelectedFilters();
+                        Visualforce.remoting.Manager.invokeAction('{! $RemoteAction.LogViewerCtrl.deleteAllEntries }',
+                            filters, 
+                            function(result, event) {
+                                if (!event.status) {
+                                    alert('Exception: ' + event.message + ' (StatusCode: '+ event.statusCode +')');
+                                }
+                            });
+                        renderTable([]);
+                    }
+                });
+            }
+
+            function getRecordViewLink(record) {
+                return `<a target="_blank" href="javascript:openNewTab('/` + record.Id + `')">View</a>`;
+            }
+
+            function getRecordDeleteLink(record) {
+                return `<a data-record-id="` + record.Id + `" class="delete-link" href="#">Del</a>`;
+            }
+
+            function getLogFieldsToDisplay() {
+                return new Promise((resolve, reject) => {
+                    Visualforce.remoting.Manager.invokeAction('{! $RemoteAction.LogViewerCtrl.getLogFieldsToDisplay }',
+                        function(result, event) {
+                            if (event.status) {
+                                fields = result;
+                            } else {
+                                alert('Exception: ' + event.message + ' (StatusCode: '+ event.statusCode +')');
+                            }
+                            resolve();
+                        }
+                    );
+                });
+            }
+            
+            function constructTableHeader() {
+                var actionHeader = createTableHeader('Actions');
+                addHeader(actionHeader);
+                for (field in fields) {
+                    var fieldHeader = createTableHeader(field);
+                    addHeader(fieldHeader);
+                }
+            }
+
+            function addHeader(th) {
+                $('#log-table .table-header').append(th);
+            }
+
+            var TABLE_HEADER_NAME_HOLDER = '{ HEADER_NAME }'
+            var TABLE_HEADER_TEMPLATE = `<th scope="col">
+                                            <span class="slds-truncate" title="` + TABLE_HEADER_NAME_HOLDER + `">`+ TABLE_HEADER_NAME_HOLDER +`</span>
+                                        </th>`;
+            function createTableHeader(title) {
+                return $(TABLE_HEADER_TEMPLATE.replace(new RegExp(TABLE_HEADER_NAME_HOLDER, "g"), title));
+            }
+
+            function getSelectedFilters() {
+                var filters = {};
+                $('#filter-container select').each(function (index, value){
+                    var name = $(this).attr('name');
+                    var selected = $(this).val();
+                    filters[name] = selected;
+                });
+                return filters;
+            }
+
+            function initializeFilters() {
+                return new Promise((resolve, reject) => {
+                    Visualforce.remoting.Manager.invokeAction('{! $RemoteAction.LogViewerCtrl.getLogFilters }',
+                        function(logFilters, event) {
+                            if (event.status) {
+                                logFilters.forEach( (filter, index, array) => {
+                                    createDropdownForFilter(filter);
+                                });
+                                appendGoButton();
+                            } else {
+                                alert('Exception: ' + event.message + ' (StatusCode: '+ event.statusCode +')');
+                            }
+                            resolve();
+                        });
+                });
+            }
+
+            var FILTER_NAME_HOLDER = '{ filterName }';
+            var SELECT_DROPDOWN_TEMPLATE = `<div class="slds-form-element slds-m-right_medium">
+                                                <label class="slds-form-element__label" for="created-date-filter">` + FILTER_NAME_HOLDER + `</label>
+                                                <div class="slds-form-element__control">
+                                                    <div class="slds-select_container">
+                                                        <select class="slds-select" name="` + FILTER_NAME_HOLDER + `"></select>
+                                                    </div>
+                                                </div>
+                                            </div>`;
+
+            function createDropdownForFilter(filter) {
+                var selectDropdown = $(SELECT_DROPDOWN_TEMPLATE.replace(new RegExp(FILTER_NAME_HOLDER, "g"), filter.filterName));
+                var selectElement = $('.slds-select', selectDropdown);
+
+                filter.filterOptions.forEach( (opt, index, array) => {
+                    selectElement.append('<option>' + opt + '</option>');
+                });
+                // first option is the default filter value
+                selectElement.val(filter.filterOptions[0]);
+
+                $('#filter-container').append(selectDropdown);
+            }
+
+            function appendGoButton() {
+                var goButton = $(`<div class="slds-form-element slds-align-bottom">
+                                    <div class="slds-form-element__control">
+                                        <button id="go-button" class="slds-button slds-button_brand">Go!</button>
+                                    </div>
+                                </div>`);
+                goButton.click(() => {
+                    populateLogTable();
+                });
+                $('#filter-container').append(goButton);
+            }
+
+            function spinner() {
+                return $('.slds-spinner');
+            }
+
+        })(jQuery);
+
+        function openNewTab(url) {
+            if (typeof sforce !== "undefined" && typeof sforce.one !== "undefined") {
+                sforce.one.navigateToURL(url);
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+    <div class="slds-m-around_medium viewer">
+        <div class="slds-page-header__title">Zendesk Support Logs</div>
+        <div class="slds-grid slds-m-top_medium">
+            <div id="filter-container" class="slds-col slds-grid"></div>
+            <div class="slds-col">
+                <button id="delete-all-button" class="slds-button slds-button_destructive">Delete All Entries</button>
+            </div>
+        </div>
+        <table id="log-table" class="slds-table slds-table_cell-buffer slds-table_striped slds-m-top_medium slds-table_bordered slds-is-relative">
+            <thead class="slds-tportion--bordered">
+                <tr class="slds-text-title--caps table-header"></tr>
+            </thead>
+            <tbody class="slds-table--bordered-s slds-tportion--bordered table-body"></tbody>
+        </table>
+        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_brand">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+</apex:page>

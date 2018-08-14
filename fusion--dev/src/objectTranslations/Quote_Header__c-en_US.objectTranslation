@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Quote Header</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Quote Headers</value>
+    </caseValues>
+    <fields>
+        <label><!-- Account Bill to Number --></label>
+        <name>Account_Billto__c</name>
+    </fields>
+    <fields>
+        <label><!-- Account Ship to Number --></label>
+        <name>Account_Shipto__c</name>
+    </fields>
+    <fields>
+        <label><!-- Account Sold to Number --></label>
+        <name>Account_Soldto__c</name>
+    </fields>
+    <fields>
+        <label><!-- Account --></label>
+        <name>Account__c</name>
+        <relationshipLabel><!-- Quote Headers --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Billing Address --></label>
+        <name>Billing_Address__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing City --></label>
+        <name>Billing_City__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ordering Person --></label>
+        <name>Billing_Contact_Name__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing Country --></label>
+        <name>Billing_Country__c</name>
+    </fields>
+    <fields>
+        <label><!-- Email --></label>
+        <name>Billing_Email__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing Mobile --></label>
+        <name>Billing_Mobile__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing Phone --></label>
+        <name>Billing_Phone__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing Plan Type --></label>
+        <name>Billing_Plan_Type__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing State --></label>
+        <name>Billing_State__c</name>
+    </fields>
+    <fields>
+        <label><!-- Billing Zip --></label>
+        <name>Billing_Zip__c</name>
+    </fields>
+    <fields>
+        <label><!-- Channel --></label>
+        <name>Channel__c</name>
+        <picklistValues>
+            <masterLabel>Email</masterLabel>
+            <translation><!-- Email --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Phone</masterLabel>
+            <translation><!-- Phone --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Web</masterLabel>
+            <translation><!-- Web --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Contact --></label>
+        <name>Contact__c</name>
+        <relationshipLabel><!-- Quote Headers --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Coupon Code --></label>
+        <name>Coupon_Code__c</name>
+    </fields>
+    <fields>
+        <label><!-- CreatedDate --></label>
+        <name>CreatedDate__c</name>
+    </fields>
+    <fields>
+        <label><!-- Discount Item --></label>
+        <name>Discount_Item__c</name>
+    </fields>
+    <fields>
+        <label><!-- Discount --></label>
+        <name>Discount__c</name>
+    </fields>
+    <fields>
+        <label><!-- Do Not Ship Before --></label>
+        <name>Do_Not_Ship_Before__c</name>
+    </fields>
+    <fields>
+        <label><!-- ExpireQuote --></label>
+        <name>ExpireQuote__c</name>
+    </fields>
+    <fields>
+        <label><!-- Expires --></label>
+        <name>Expires__c</name>
+    </fields>
+    <fields>
+        <label><!-- Follow Up Task Date --></label>
+        <name>Followup_Task_Date__c</name>
+    </fields>
+    <fields>
+        <label><!-- In Hands Date --></label>
+        <name>In_Hands_Date__c</name>
+    </fields>
+    <fields>
+        <label><!-- Industry --></label>
+        <name>Industry__c</name>
+    </fields>
+    <fields>
+        <label><!-- Opportunity --></label>
+        <name>Opportunity__c</name>
+        <relationshipLabel><!-- Quote Headers --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Order --></label>
+        <name>Order__c</name>
+    </fields>
+    <fields>
+        <label><!-- Purchase Order --></label>
+        <name>Purchase_Order__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Comments --></label>
+        <name>Quote_Comments__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Email Sent At --></label>
+        <name>Quote_Email_Sent_At__c</name>
+    </fields>
+    <fields>
+        <label><!-- Sales Organization --></label>
+        <name>Sales_Organization__c</name>
+    </fields>
+    <fields>
+        <label><!-- Sales Total --></label>
+        <name>Sales_Total__c</name>
+    </fields>
+    <fields>
+        <label><!-- Shipping Cost --></label>
+        <name>Shipping_Cost__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To Address --></label>
+        <name>Shipto_Address__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To City --></label>
+        <name>Shipto_City__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To Country --></label>
+        <name>Shipto_Country__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To Mobile --></label>
+        <name>Shipto_Mobile__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To Phone --></label>
+        <name>Shipto_Phone__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To State --></label>
+        <name>Shipto_State__c</name>
+    </fields>
+    <fields>
+        <label><!-- Ship To Zip --></label>
+        <name>Shipto_Zip__c</name>
+    </fields>
+    <fields>
+        <label><!-- Status --></label>
+        <name>Status__c</name>
+        <picklistValues>
+            <masterLabel>Approved</masterLabel>
+            <translation><!-- Approved --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Draft</masterLabel>
+            <translation><!-- Draft --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Expired</masterLabel>
+            <translation><!-- Expired --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>In Review</masterLabel>
+            <translation><!-- In Review --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Lost</masterLabel>
+            <translation><!-- Lost --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>New</masterLabel>
+            <translation><!-- New --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Won</masterLabel>
+            <translation><!-- Won --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Sub Total --></label>
+        <name>Sub_Total__c</name>
+    </fields>
+    <fields>
+        <label><!-- Tax --></label>
+        <name>Tax__c</name>
+    </fields>
+    <layouts>
+        <layout>Quote Header Layout</layout>
+        <sections>
+            <label><!-- Custom Links --></label>
+            <section>Custom Links</section>
+        </sections>
+    </layouts>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

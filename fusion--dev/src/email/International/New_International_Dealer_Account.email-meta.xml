@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>New International Dealer Account</name>
+    <style>freeForm</style>
+    <subject>RE: {!Case.Subject}.</subject>
+    <textOnly>Hi ,
+
+We really appreciate your interest in YETI. Due to the high volume of dealer applications we are requesting additional steps in order to move forward with your request. Thank you for your patience and understanding.
+
+Attached you will find a sample dealer agreement, please review but do not sign.
+
+I understand that some of this information might have been asked before but as we continue to work on developing our International Dealer Application Process we would appreciate if you could please provide the following:
+
+- Company Name:
+
+- Contact Name:
+
+- Website:
+
+- Phone Number:
+
+- Address:
+
+- Are you a dealer or a distributor?
+
+- Core Market:
+
+- Number of years company has been in business:
+
+- Number of years company has had a store front:
+
+o Photos of proposed retail location.
+
+- What products are you interested in carrying?
+
+o Hard-sided coolers
+
+o Soft-sided coolers
+
+o Drinkware
+
+o Other products/gear
+
+
+Furthermore, please provide us with additional insights regarding your abilities to be make an impact as a YETI dealer/distributor and help us understand your arrangements with US based brands, duties, shipping, storage, etc.
+
+- What details can you give regarding your business model?
+
+- Can you function as a 3PL (Third-party logistics)?
+
+- What terms do you seek?
+
+
+And lastly, how do you plan to be successful with YETI? Thank you for your time and interest. Please let us know if you have any questions!
+
+
+{!User.CommunityNickname}
+
+The YETI Outfitters
+
+512.394.9384
+
+customerservice@yeti.com
+
+yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

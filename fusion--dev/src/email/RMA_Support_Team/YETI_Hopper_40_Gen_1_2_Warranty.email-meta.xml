@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>YETI Hopper 40 Gen 1-2 Warranty</name>
+    <style>freeForm</style>
+    <subject>RE: {!Case.Subject}.</subject>
+    <textOnly>Hello!
+
+
+Thank you for reaching out to us regarding your Hopper 40. We are sorry to hear that your zipper broke.
+
+
+We would like to replace your cooler for you. We are, however, no longer carrying the YETI Hopper 40 and will need to confirm if you would like to move into one of the following:
+
+
+
+YETI Hopper TWO 30 (Tahoe Blue or Tan) + Sidekick Dry
+
+Tundra 45- White, Desert Tan or Ice Blue
+
+
+
+Please let us know how you would like to proceed and we’ll get your warranty taken care of!
+
+
+Have a great day!
+
+
+{!User.CommunityNickname}
+
+The YETI Outfitters
+
+512.394.9384
+
+
+customerservice@yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

@@ -1,0 +1,182 @@
+<apex:page sidebar="false" controller="Zendesk.BulkSyncHistoryCtrl">
+
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery/1.12.3/jquery.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/1.10.12/js/jquery.dataTables.min.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__slds, 'assets/styles/salesforce-lightning-design-system.min.css')}" />
+
+	<style>
+		.main-content{
+			padding-top: 20px;
+			padding-left: 10px;
+		}
+		.header-text{
+			width: 400px;
+			height: 22px;
+			font-size: 18px;
+			font-weight: 300;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+		}
+		.subheader-text, .dataTables_info, .dataTables_length {
+			font-size: 13px;
+			font-weight: 300;
+			font-style: normal;
+			font-stretch: normal;
+			color: #333333;
+		}
+		.subheader-text {
+			width: 400px;
+			height: 22px;
+		}
+		#bulk-sync-history {
+			padding: 3em;
+		}
+		.slds-icon { 
+			fill: #0070d2; 
+		}
+		.footer {
+			margin-top: 5%;
+			padding-left: 10px;
+		}
+		.slds-table--bordered-s tr {
+			box-shadow: 0 1px 0 0 #d8dde6, 0 -1px 0 0 #d8dde6;
+		}
+		.slds-tportion--bordered {
+			border-bottom: 1px solid #000;
+		}
+
+		.sorting, .sorting_asc, .sorting_desc,.sorting_asc_disabled, .sorting_desc_disabled{
+				background-repeat:no-repeat;background-position:center right
+		}
+		.sorting {
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_both.png')}")
+		}
+		.sorting_asc{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_asc.png')}")
+		}
+		.sorting_desc{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_desc.png')}")
+		}
+		.sorting_asc_disabled{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_asc_disabled.png')}")
+		}
+		.sorting_desc_disabled{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_desc_disabled.png')}")
+		}
+
+		.dataTables_paginate, .dataTables_length {
+			float:right;text-align:right;padding-top:0.25em
+		}
+		.dataTables_info {
+			float:left;text-align:left;padding-top:0.25em
+		}
+		.paginate_button {
+			margin: .5em;
+		}
+		.paginate_button.disabled {
+			color: #53688e;
+			text-decoration: none;
+		}
+		.dropdown {
+			width: 106px;
+			height: 30px;
+			margin: 1em .25em;
+			border-radius: 4px;
+			background-color: #ffffff;
+			border: solid 1px #d8dde6;
+		}
+		
+	</style>
+	
+	<script>
+		(function(j$) {
+			j$.fn.dataTableExt.sErrMode = 'none';
+			j$(document).ready(function() {
+				var data = '{!JSENCODE(bulkSyncHistory)}';
+				var jsonArray = JSON.parse(data);
+				var array = new Array();
+				for(var i = 0; i < jsonArray.length; i++) {
+					var obj = new Array();
+					obj.push(jsonArray[i].createdDate);
+					obj.push(jsonArray[i].totalRecordsSynced);
+					obj.push(jsonArray[i].totalRecordsCreatedInSalesforce);
+					obj.push(jsonArray[i].sfdcObject);
+					obj.push(jsonArray[i].totalRecordsCreatedInZendesk);
+					obj.push(jsonArray[i].zdObject);
+					obj.push(jsonArray[i].status);
+					if(jsonArray[i].hasErrorRowId) {
+						obj.push('<a href="{!$Page.BulkSyncErrorExport}?jobId=' + jsonArray[i].hasErrorRowId + '" target="_blank">Download</a>');
+					}
+					array.push(obj);
+				}
+				renderTable(array);
+				j$('.dataTables_length select').addClass('dropdown');
+			});
+
+			function renderTable(array) {
+			    j$('#bulk-sync-history').DataTable( {
+	    	        "searching": false,
+	    	        "pagingType": "full_numbers",
+	  				"ordering": false,
+	    	        "data": array,
+			    });
+			}
+		})(jQuery);
+	</script>
+
+	<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+	<!-- HTML COMPONENTS -->
+
+	<div class="main-content">
+		<div class="header-text">Zendesk Support Bulk Sync - History</div>
+		<div class="subheader-text">Your sync summaries and details are listed in the table below.</div>
+	</div>
+
+	<!-- TABLE -->
+	<table id="bulk-sync-history" class="slds-table slds-table--cell-buffer slds-table--striped slds-no-row-hover">
+	  <thead class="slds-tportion--bordered">
+	    <tr class="slds-text-title--caps">
+	      <th scope="col">
+	        <span class="slds-truncate" title="Sync Date">Sync Date</span>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Total Records Synced">Total Records<br />Synced</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Created in SFDC">Created in SFDC</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Salesforce Object">Saleforce<br/>Object</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Created in Zendesk Support">Created in<br />Zendesk Support</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Zendesk Support Object">Zendesk Support<br />Object</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Sync Status">Sync Status</div>
+	      </th>
+	      <th scope="col">
+	        <div class="slds-truncate" title="Errors">Errors</div>
+	      </th>
+	    </tr>
+	  </thead>
+	  <tbody class="slds-table--bordered-s slds-tportion--bordered">
+	  </tbody>
+	</table>
+	<!-- FOOTER -->
+	<div class="footer slds-border--top slds-p-top--large slds-m-bottom--small">
+		<div class="slds-float--right">
+			<span>
+				<a href="{!URLFOR($Page.BulkSyncMain)}"><button class="slds-button slds-button--brand">Return to Bulk Sync</button></a>
+			</span>
+		</div>
+		<div style="clear: both;" />
+	</div>
+	<!-- END OF FOOTER -->
+ 	</html>
+</apex:page>

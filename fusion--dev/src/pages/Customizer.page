@@ -1,0 +1,88 @@
+<apex:page docType="html-5.0" contentType="text/html; charset=UTF-8">
+    <apex:includeScript value="{!$Resource.Widget}" />
+    <html>
+
+    <head>
+        <title>Customizer Test</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <style>
+            body {
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="widget"></div>
+
+        <script>
+        window.addEventListener("message", function(event) {
+            var CustomizerData = event.data;
+            if(CustomizerData.includes("jsondata")){
+                var CustomizerData = event.data;
+            console.log(CustomizerData);
+            console.log('vf-->edit');
+            let custmizerList = [];
+                custmizerList = JSON.parse(CustomizerData);
+             console.log(custmizerList); 
+              console.log(custmizerList.UPK);
+            YETI.customizer.init({
+                selector: '.widget', // DOM selector to display the customizer 
+                product:  custmizerList.UPK,
+                onReady: () => {
+                    //document.querySelector('[data-open]').onclick = YETI.customizer.open;
+                    //document.querySelector('[data-close]').onclick = YETI.customizer.close;
+                    YETI.customizer.open({
+                    data: JSON.stringify(custmizerList.jsondata)    //["{\"version\":\"2.0\",\"customtype\":\"monogram\",\"ramsideloc\":\"front\",\"productkey\":\"rambler-wine-tumbler-10oz\",\"ramvertloc\":\"auto\",\"ramorientation\":\"auto\",\"custpreview\":\"https://rambleron-staging.s3.amazonaws.com/flat_images/2018/05-02/6382-1525278907-large.png\",\"warpedpreview\":\"https://s3.amazonaws.com/rambleron-staging/approval_images/2018/05-02/6382/1525278907-large.png\",\"previewid\":6382,\"previewurl\":\"https://store-staging.rambleron.com/api/v2/customizations/6382?type=monogram\",\"monogram\":{\"rawtext\":\"ACB\",\"translatedtext\":\"aB3\",\"basefont\":\"circle\",\"font\":\"three-character-circle\",\"size\":\"auto\"}}"]
+                    });
+                },
+                // Do something with the data upon clicking the "Approve" button
+                onApprove: function(data) {
+                   // do something with the customization data
+                  console.log("1Jsondata"+data);
+                    
+                  var message ={
+                  isEdit : "true",
+                  editdata :data 
+                  } 
+                      
+                   
+                  parent.postMessage(JSON.stringify(message), '*');
+            
+               }
+            });      
+                
+            }else{
+            var UPK = event.data;
+            console.log('vf-->'+UPK);
+            YETI.customizer.init({
+                selector: '.widget', // DOM selector to display the customizer 
+                product:  UPK,
+                onReady: () => {
+                    //document.querySelector('[data-open]').onclick = YETI.customizer.open;
+                    //document.querySelector('[data-close]').onclick = YETI.customizer.close;
+                    YETI.customizer.open({
+                        //data: ["{\"version\":\"2.0\",\"customtype\":\"monogram\",\"ramsideloc\":\"front\",\"productkey\":\"rambler-wine-tumbler-10oz\",\"ramvertloc\":\"auto\",\"ramorientation\":\"auto\",\"custpreview\":\"https://rambleron-staging.s3.amazonaws.com/flat_images/2018/05-02/6382-1525278907-large.png\",\"warpedpreview\":\"https://s3.amazonaws.com/rambleron-staging/approval_images/2018/05-02/6382/1525278907-large.png\",\"previewid\":6382,\"previewurl\":\"https://store-staging.rambleron.com/api/v2/customizations/6382?type=monogram\",\"monogram\":{\"rawtext\":\"ACB\",\"translatedtext\":\"aB3\",\"basefont\":\"circle\",\"font\":\"three-character-circle\",\"size\":\"auto\"}}"]
+                    });
+                },
+                // Do something with the data upon clicking the "Approve" button
+                onApprove: function(data) {
+                   // do something with the customization data
+                  console.log("1Jsondata"+data);
+                    
+                  var message = data;
+                  parent.postMessage(message, '*');
+            
+               }
+            });
+                }
+                
+         }, false); 
+            
+           
+        </script>
+    </body>
+        
+    </html>
+</apex:page>

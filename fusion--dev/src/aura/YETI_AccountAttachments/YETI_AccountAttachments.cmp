@@ -1,0 +1,118 @@
+<!--
+Name: YETI_AccountAttachments
+Description: Gets the attachments of Account and all its child objects` attachments
+Created By: Yeshas Konduru
+-->
+<aura:component controller="AccountAttachmentsController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    
+    <!-- ATTRIBUTES -->
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="start" type="integer" default="0"/>
+    <aura:attribute name="pageSize" type="integer" default="10"/>        
+    <aura:attribute name="relatedAttachments" type="list"/>
+    <aura:attribute name="relatedAttachmentsFinalList" type="list"/>
+    <aura:attribute name="paginationList" type="list"/>
+    <aura:attribute name="searchText" type="string"/>    
+    <!-- HANDLERS -->
+    <aura:handler name="init" action="{!c.onloadpage}" value="{!this}"/>    
+    <!-- TABLE OF ATTACHMENTS -->
+    <div class="slds" style="width:100%;" >
+        <div class="slds-container">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_2-of-12">
+                    <lightning:select value="{!v.pageSize}" class="selectCount" onchange="{!c.first}" >
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </lightning:select>
+                </div>
+                <div class="slds-col slds-size_7-of-12">
+                </div>
+                <div class="slds-col slds-size_3-of-12">
+                    <lightning:input type="text"  name="searchInput" onkeyup="{!c.filterSelection}"  value="{!v.searchText}" aura:id="searchInput" label="Type here to search" />
+                </div>
+            </div>
+          
+            <table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal">
+                <thead>
+                    <tr class="slds-text-title_caps">                    
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Action">Action</div>
+                        </th>
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Type">Type</div>
+                        </th>
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Name">Name</div>
+                        </th>
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Related To">Related To</div>
+                        </th>
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Created Date">Last Modified</div>
+                        </th>
+                        <th scope="col" class="slds-cell-wrap">
+                            <div class="slds-truncate" title="Created By">Created By</div>
+                        </th>                    
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.paginationList}" var="obj">
+                        <aura:if isTrue="{!and(obj.Id!='' , obj.Id!=null,obj.Id!=undefined)}">
+                            <tr>
+                                <td data-label="Name" class="slds-cell-wrap">
+                                    
+                                    <div class="slds-truncate table-col" >
+                                        <a data-parentid="{!obj.Id}"  onclick="{!c.redirectToParent}">View</a> | <a   onclick="{!c.deleteAttachment}" data-attachmentId="{!obj.Id}">delete</a>
+                                    </div>
+                                    
+                                </td>
+                                <td data-label="Name" class="slds-cell-wrap customwith">
+                                    <div class="slds-truncate table-col"  title="{!obj.Type}">
+                                        {!obj.Type}
+                                    </div>
+                                </td>
+                                <td data-label="Name" class="slds-cell-wrap customwith">
+                                    <div class="slds-truncate table-col"  title="{!obj.name}">
+                                        {!obj.name}
+                                    </div>
+                                </td>
+                                <td data-label="Related To" class="slds-cell-wrap">
+                                    <div class="slds-truncate table-col" title="{!obj.relatedToName}">
+                                        <a data-parentid="{!obj.relatedToId}" onclick="{!c.redirectToParent}">{!obj.relatedToName}</a>
+                                    </div>
+                                </td>
+                                <td data-label="Created Date" class="slds-cell-wrap">
+                                    <div class="slds-truncate table-col" title="{!obj.LastModifiedDate}"><lightning:formattedDateTime value="{!obj.LastModifiedDate}"/></div>
+                                </td>
+                                <td data-label="Created By" class="slds-cell-wrap">
+                                    <div class="slds-truncate table-col" title="{!obj.CreatedByName}">{!obj.CreatedByName}</div>
+                                </td>
+                            </tr>
+                        </aura:if>
+                    </aura:iteration>
+                    <tr>
+                        <td>
+                            <aura:if isTrue="{!v.relatedAttachments.length>0}">
+                            Showing {!v.start+1} to {!if(v.start+v.pageSize>v.relatedAttachments.length,v.relatedAttachments.length,v.start+v.pageSize)}  of {!v.relatedAttachments.length}
+                            </aura:if>
+                        </td>
+                        
+                        <td colspan="5" align="left" class="buttonGroup">
+                            <lightning:buttonGroup>                                
+                                <lightning:button label="First" disabled="{!v.start == 0}" onclick="{!c.first}" />
+                                <lightning:button label="&lt; Previous" disabled="{!v.start == 0}" onclick="{!c.callPrevious}" />
+                                <lightning:button label="Next &gt;"  onclick="{!c.callNext}"  disabled="{!v.start+v.pageSize >= v.relatedAttachments.length}"  />
+                                <lightning:button label="Last "  onclick="{!c.last}"  disabled="{!v.start+v.pageSize >= v.relatedAttachments.length}"   />
+                            </lightning:buttonGroup>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="">
+            <lightning:spinner aura:id="spinner"  variant="brand" alternativeText="Loading" size="medium" />
+        </div>
+    </div>
+</aura:component>

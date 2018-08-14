@@ -1,0 +1,3 @@
+<aura:event type="COMPONENT" description="Event template">
+	<aura:attribute name="productId" type="TopProducts__c" access="GLOBAL"/>
+</aura:event>

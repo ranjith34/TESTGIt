@@ -1,0 +1,828 @@
+<apex:page showHeader="true" sidebar="false" controller="Zendesk.BulkSyncMonitorCtrl">
+
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery/1.12.3/jquery.min.js')}" />
+	<apex:includeScript value="/soap/ajax/36.0/connection.js"/>
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/bootstrap/3.3.7/js/bootstrap.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/bootstrap/3.3.7/css/bootstrap.min.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__slds, 'assets/styles/salesforce-lightning-design-system.min.css')}" />
+
+	<style>
+		.main-content{
+			padding-top: 20px;
+			padding-left: 10px;
+		}
+		.header-text{
+			width: 400px;
+			height: 22px;
+			font-size: 18px;
+			font-weight: 300;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+		}
+		.rectangle-1 {
+			display: inline-block;
+			border-radius: 2px;
+			background-color: #dbe9f7;
+			border: solid 1px #8db9e0;
+			margin-top: 20px;
+		}
+		.warning-1 {
+			font-family: ArialMT;
+			font-size: 12px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+			padding: 10px;
+		}
+		.help-text {
+			width: 700px;
+			height: 15px;
+			font-family: ArialMT;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #999999;
+		}
+		.block-margin {
+			margin-top: 30px;
+		}
+		.item-margin {
+			margin-top: 8px;
+		}
+		.footer {
+			margin-top: 10%;
+			padding-left: 10px;
+		}
+		.footer-left {
+			float: left;
+			width: 75%;
+		}
+		.footer-right {
+			float:right;
+			width: 25%;
+			text-align: right;
+		}
+		.footer-text {
+			width: 38px;
+			height: 14px;
+			font-size: 12px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #0070d2;
+			vertical-align: middle;
+		}
+		.footer-settings {
+			margin-left: 26px;
+		}
+		.error {
+			border: solid 1px #FF0000;
+		}
+		.slds-modal__container {
+			height: 20%;
+			margin-top: 25%;
+		}
+		.monitor {
+			margin-left: auto;
+			margin-right: auto;
+			text-align: center;
+			min-height: 350px;
+		}
+		.monitor-text {
+			font-size: 16px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			text-align: center;
+			color: #333333;
+		}
+		.spinner-div {
+			height: 10%;
+			margin: 50px auto;
+		}
+		.spinner {
+			width : 50px;
+		}
+		.progress {
+			margin-top: 40px;
+			margin-left:auto;
+			margin-right:auto;
+			width: 70%;
+		}
+		.add-margin {
+			margin-top: 25px;
+		}
+		.sync-complete-text {
+			margin: 10px auto;
+			font-size: 16px;
+			font-weight: 600;
+			font-style: normal;
+			font-stretch: normal;
+			line-height: 1.38;
+			text-align: center;
+			color: #333333;
+		}
+		.summary-wrapper {
+			width: 540px;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: 30px;
+			border-radius: 4px;
+			border: solid 1px #d8dde6;
+			padding-top: 30px;
+			padding-right: 40px;
+			padding-left: 40px;
+			padding-bottom: 0px;
+		}
+		.summary-title-text {
+			text-align: left;
+			margin-bottom: 30px;
+			font-size: 16px;
+			font-weight: 600;
+			font-style: normal;
+			font-stretch: normal;
+			line-height: 1.25;
+			color: #16325c;
+		}
+		.summary-item-text {
+			float: left;
+			margin-bottom: 30px;
+			width: 80%;
+			text-align: left;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			line-height: 1.54;
+			color: #333333;
+		}
+		.summary-item-number {
+			text-align: center;
+			padding-left:3px;
+			padding-right:3px;
+			padding-top:2px;
+			float: left;
+			min-width: 70px;
+			height: 21px;
+			border-radius: 100px;
+			background-color: #53688e;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #ffffff;
+		}
+		.error-item-number {
+			text-align: right;
+			float: left;
+			width: 20%;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			color: #fff;
+			border-radius: 100px;
+			background-color: #C23934;
+		}
+		.hr-1 { 
+		    width: 60%;
+			height: 1px;
+			margin-top: 30px;
+			background-color: #f3f3f3;
+
+		}
+		.hr-2 {
+			margin: 20px auto;
+		}
+		#percentageWrapper {
+		    position: relative;
+		}
+
+		#percentageWrapper span {
+		    position: absolute;
+		    display: block;
+		    width: 100%;
+		    color: black;
+		 }
+
+		#syncErrored {
+			text-align: center;
+		}
+		.slds-icon {
+			fill: #0070d2;
+		}
+		.progress-bar {
+			background-color: #53688E;
+		}
+	</style>
+
+	
+	<script>
+		(function(j$) {
+			//Set remoting time out to 120s to allow remoteAction to return
+			Visualforce.remoting.timeout = 120000; 
+			Visualforce.remoting.buffer = false;
+			sforce.connection.sessionId = "{!$Api.Session_ID}";
+			var JOBID = "{!JSENCODE($CurrentPage.parameters.jobid)}";
+			//To append package prefix to elements in the package
+			var PREFIX = "";
+			//This is used to determine when we need to refresh page to reload the layout
+			var CURRENT_PROGRESS = "";
+			//This is to control rate of calling loadStatus
+			//Default 10000, can be changed in custom metadata
+			var REFRESH_RATE = 10000;
+
+			j$(document).ready(function() {
+				loadPrefix();
+				loadRefreshRate();
+				loadStatus();
+
+				//---------- IN-PAGE ACTION ---------------
+				j$('button#EditButton').click(function(){
+					Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.getTooManyElement}", function(result,event) {
+						if (event.status) {
+							if (result) {
+								//More than 10k rows in manual match, need to show the warning.
+								j$('div#tooManyRecordWarning').show();
+							} else {
+								openManualMatch();
+							}
+						}
+					});
+				});
+
+				j$('button#CancelButton').click(function(){
+					//Only do this for running jobs, in Summary page it should just exit
+					if(j$('button#CancelButton').text() == 'Cancel'){
+						j$('div#warningDialogue').show();
+
+						j$('button#modalCancel').on('click', function(){
+							j$('div#warningDialogue').hide();
+						});
+
+						j$('button#modalClose').on('click', function(){
+							j$('div#warningDialogue').hide();
+						});
+
+						j$('button#modalContinue').on('click', function(){
+							cancelJob();
+							j$('div#warningDialogue').hide();
+						});
+					}else{
+						navigateToURL('/apex/'+ PREFIX +'BulkSyncMain');
+					}
+				});
+
+				j$('a#skipManualMatch').click(function(){
+					skipManualMatch();
+				});
+
+				j$('button#try-again-button').click(function(){
+					navigateToURL('/apex/'+ PREFIX +'BulkSyncMain');
+				});
+				j$('button#tooManyRecordsModalCancel').click(function(){
+					j$('div#tooManyRecordWarning').hide();
+				});
+				j$('button#tooManyRecordModalClose').click(function(){
+					j$('div#tooManyRecordWarning').hide();
+				});
+			});
+
+			//-------------------------- Functions -----------------------------------------
+			function loadPrefix () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.getPrefix}", function(result, event) {
+					if (event.status) {
+						PREFIX = result;
+					}
+				});
+			}
+
+			function loadStatus () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.getJobStatus}", JOBID, function(result, event) {
+					if (event.status) {
+						if(result.progress === 'Auto Match') {
+							j$("div#percentageBar").attr("aria-valuenow", result.percentageDone).css("width", result.percentageDone+"%");
+							j$("span#progressText").text(result.currentlyCompletedCount + " out of " +result.currentToProcessTotal + " records processing");
+							progressionText(result.currentlyAutoMatched, result.currentToProcessTotal, result.progress);
+						}
+						else if (result.progress !== 'Summary' && result.progress !== 'Error') {
+							setProgressBar(result.percentageDone);
+							progressionText(result.currentlyCompletedCount, result.currentToProcessTotal, result.progress);
+						} 
+						else {
+							setSummaryText(result);
+						}
+						if(CURRENT_PROGRESS !== "" && CURRENT_PROGRESS !== result.progress) {
+							//Only Refresh at major progress change (eg. Auto Match, Manual Match, Create in Zendesk, Suammry), or there is not progress returned (mostly because there is no current job running due to job complete at the end)
+							//Not using string.include() because Create in Zendesk will be included in Prepare for Create in Zendesk
+							if(result.progress === "Manual Match" || result.progress === "Manual Match Prepare Records" || result.progress === "Update in Salesforce" || result.progress === "Prepare for Create in Zendesk" || result.progress === "Summary" || result.progress === "Error" || result.progress === 'Abort' || !result.progress) {				
+								navigateToURL("/apex/"+ PREFIX +"BulkSyncMonitor?jobid=" + JOBID);
+							}
+						}
+						else {
+							CURRENT_PROGRESS = result.progress;
+						}
+					}
+				});
+			}
+
+			function loadProgress() {
+				var jobID = "{!JSENCODE($CurrentPage.parameters.jobid)}";
+				if(typeof(jobID) !== "undefined" && jobID !== null && jobID !== "") {
+					var query = "SELECT ID, " + 
+									PREFIX + "Progress__c, " + 
+									PREFIX + "Sync_Mode__c, " + 
+									PREFIX + "Total_Records_for_Manual_Match__c " + 
+								"FROM " + PREFIX + "Zendesk_Sync_Job__c WHERE ID = \'" + jobID + "\'";
+					sforce.connection.query(query, {
+						onSuccess: setCurrentProgress,
+						onFailure: queryFailed
+					})
+				}else{
+					j$("span#syncSetup").removeClass("step-grey");
+					j$("span#syncSetup").addClass("step-current");
+				}
+			}
+
+			function loadRefreshRate() {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.getRefreshRate}", function(result, event) {
+					if (event.status) {
+						if (result != 0) {
+							REFRESH_RATE = parseInt(result);
+						}
+						//Initialize page components with new refresh rate
+						loadProgress();
+					} else {
+						//initialize page components with default refresh rate
+						loadProgress();
+					}
+				});
+			}
+
+			function HtmlDecode(html) {
+				var div = document.createElement("div");
+				div.innerHTML = html;
+				return div.childNodes[0].nodeValue;
+			}
+
+
+			function setCurrentProgress(queryResult){
+
+				switch(queryResult.records.get(PREFIX+"Progress__c")){
+					case "Auto Match":
+						enableAutoMatching();
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Auto Matching");
+						j$("div#MonitorText1").text("Syncing in progress");
+						j$("div#MonitorText2").text("This can take up to 6 hours for a large sync");
+						j$("div#MonitorWrapper").show();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+						break;
+
+					case "Manual Match":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+						j$("div#percentageWrapper").hide();
+						j$("div#MonitorText3").addClass("add-margin");
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Manual Matching");
+						j$("div#MonitorText1").text("There are records that need to be manually matched");
+						j$("div#MonitorText2").text("before the sync can proceed");
+						j$("div#EditButtonWrapper").show();
+						j$("div#SkipWrapper").show();
+						j$("div#MonitorWrapper").show();
+						break;
+
+					case "Update in Salesforce":
+					case "Manual Match Update Zendesk":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Manual Matching");
+						j$("div#MonitorText1").text("There are records that need to be manually matched");
+						j$("div#MonitorText2").text("before the sync can proceed");
+						j$("div#MonitorText3").show();
+						j$("div#EditButtonWrapper").hide();
+						j$("div#SkipWrapper").hide();
+						j$("div#MonitorWrapper").show();
+						window.clearInterval();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+						break;
+
+					case "Manual Match Prepare Records":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Manual Matching");
+						j$("div#MonitorText1").text("There are records that need to be manually matched");
+						j$("div#MonitorText2").text("before the sync can proceed");
+						j$("div#MonitorText3").show();
+						j$("div#EditButtonWrapper").hide();
+						j$("div#SkipWrapper").hide();
+						j$("div#MonitorWrapper").show();
+						window.clearInterval();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+						break;
+
+					case "Prepare for Create in Zendesk":
+					case "Create in Zendesk":
+					case "Salesforce Update for Record Created in Zendesk":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+						j$("span#arrowThree").removeClass("step-grey");
+						j$("span#arrowThree").addClass("step-current");
+						j$("span#creatInZendesk").removeClass("step-grey");
+						j$("span#creatInZendesk").addClass("step-current");
+						j$("span#arrowFour").removeClass("step-grey");
+						j$("span#arrowFour").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Create in Zendesk");
+						j$("div#MonitorText1").text("Please wait while we create records in Zendesk Support that");
+						j$("div#MonitorText2").text("currently only exist in Salesforce");
+						j$("div#MonitorWrapper").show();
+						window.clearInterval();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+						break;
+
+					case "Summary":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+						j$("span#arrowThree").removeClass("step-grey");
+						j$("span#arrowThree").addClass("step-current");
+						j$("span#creatInZendesk").removeClass("step-grey");
+						j$("span#creatInZendesk").addClass("step-current");
+						j$("span#arrowFour").removeClass("step-grey");
+						j$("span#arrowFour").addClass("step-current");
+						j$("span#completeSync").removeClass("step-grey");
+						j$("span#completeSync").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Complete Sync");
+						j$("div#MonitorText1").text("Below is a summary of your sync. You can view details of past");
+						j$("div#MonitorText2").text("syncs on the History page.");
+						j$("div#MonitorText3").hide();
+						j$("div#percentageWrapper").hide();
+						j$("div#CompleteIconWrapper").show();
+						j$("div#SummaryWrapper").show();
+						if (queryResult.records.get(PREFIX+"Sync_Mode__c") == 'Import only') {
+							//Import only summary page displays
+							j$("div#ZendeskSummaryWrapper").hide();
+							j$("div#SalesforceSummaryWrapper div.summary-item-text").text("Number of records imported to Salesforce");
+							var importOnlyRecordCount = queryResult.records.get(PREFIX+"Total_Records_for_Manual_Match__c");
+							j$("div#SalesforceSynced").text(importOnlyRecordCount ? parseInt(importOnlyRecordCount) : "0");
+						} else {
+							j$("div#ZendeskSummaryWrapper").show();
+							j$("div#SalesforceSummaryWrapper").show();
+							j$("div#SalesforceSummaryWrapper div.summary-item-text").text("Number of records synced to Salesforce");
+						}
+
+						j$("button#CancelButton").html("Exit");
+						j$("div#MonitorWrapper").show();
+						window.clearInterval();
+						break;
+					case "Error":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+						j$("span#arrowThree").removeClass("step-grey");
+						j$("span#arrowThree").addClass("step-current");
+						j$("span#creatInZendesk").removeClass("step-grey");
+						j$("span#creatInZendesk").addClass("step-current");
+						j$("span#arrowFour").removeClass("step-grey");
+						j$("span#arrowFour").addClass("step-current");
+						j$("span#completeSync").removeClass("step-grey");
+						j$("span#completeSync").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Complete Sync");
+						j$("div#SyncCompleteText").text("Sync failed");
+						j$("div#MonitorText1").text("We encountered an error while trying to run sync");
+						j$("div#MonitorText3").hide();
+						j$("div#percentageWrapper").hide();
+						j$("div#CompleteIconWrapper").show();
+						j$("div#SummaryWrapper").hide();
+
+						j$("button#CancelButton").html("Exit");
+						j$("div#MonitorWrapper").show();
+						j$("button#try-again-button").show();
+						break;
+					case "Abort":
+						j$("span#syncSetup").removeClass("step-grey");
+						j$("span#syncSetup").addClass("step-current");
+						j$("span#arrowOne").removeClass("step-grey");
+						j$("span#arrowOne").addClass("step-current");
+						j$("span#autoMatching").removeClass("step-grey");
+						j$("span#autoMatching").addClass("step-current");
+						j$("span#arrowTwo").removeClass("step-grey");
+						j$("span#arrowTwo").addClass("step-current");
+						j$("span#manualMatching").removeClass("step-grey");
+						j$("span#manualMatching").addClass("step-current");
+						j$("span#arrowThree").removeClass("step-grey");
+						j$("span#arrowThree").addClass("step-current");
+						j$("span#creatInZendesk").removeClass("step-grey");
+						j$("span#creatInZendesk").addClass("step-current");
+						j$("span#arrowFour").removeClass("step-grey");
+						j$("span#arrowFour").addClass("step-current");
+						j$("span#completeSync").removeClass("step-grey");
+						j$("span#completeSync").addClass("step-current");
+
+						j$("div#MonitorHeader").text("Zendesk Support Bulk Sync - Aborted by user");
+						j$("div#SyncCompleteText").text("Bulk Sync Aborted");
+						j$("div#MonitorText1").hide();
+						j$("div#MonitorText2").hide();
+						j$("div#MonitorText3").hide();
+						j$("div#percentageWrapper").hide();
+						j$("img#summary-icon").attr('src', WARNING_ICON);
+						j$("div#CompleteIconWrapper").show();
+						j$("div#SummaryWrapper").hide();
+
+						j$("button#CancelButton").html("Exit");
+						j$("div#MonitorWrapper").show();
+						break;
+					default:
+						window.clearInterval();
+						window.setInterval(function(){loadProgress();}, REFRESH_RATE);
+				}
+			}
+
+			function queryFailed(error){}
+
+			function progressionText (completed, total, progress) {
+				var text = completed + " out of " + total + " records ";
+				switch (progress) {
+					case "Auto Match":
+						text = completed;
+						text += " matched so far";
+						break;
+					case "Manual Match":
+						text += "matched";
+						break;
+					case "Prepare for Create in Zendesk":
+					case "Create in Zendesk":
+					case "Salesforce Update for Record Created in Zendesk":
+						text += "created in Zendesk Support";
+						break;
+					case "Update in Salesforce":
+						text = completed + " records created in Salesforce, " + total + " records updated in Salesforce";
+						break;
+					case "Manual Match Update Zendesk":
+						text = "Updating Zendesk External ID";
+						break;
+					case "Manual Match Prepare Records":
+						text = "Preparing records for creating in Salesforce";
+						break;
+				}
+				j$("div#MonitorText3").text(text);
+			}
+
+			function setProgressBar (percentageDone) {
+				//This is used to prevent percentage bar from going back to 0 after hits 100 as the progress will be changed
+				//but the percentage will be reset to 0 after a particular progress is finished
+				if(percentageDone != 0)
+					j$("div#percentageBar").attr("aria-valuenow", percentageDone).css("width", percentageDone+"%").text(percentageDone+"%");
+			}
+
+			var SUCCESS_ICON = "{!URLFOR($Resource.ZendeskStaticResources2,'/zendesk_static_resources/images/check.svg')}";
+			var WARNING_ICON =  "{!URLFOR($Resource.ZendeskStaticResources2,'/zendesk_static_resources/images/exclamation.svg')}";
+			var SMALL_WARNING_ICON = "{!URLFOR($Resource.ZendeskStaticResources2,'/zendesk_static_resources/images/warning.svg')}";
+			var ERROR_ICON = "{!URLFOR($Resource.ZendeskStaticResources2,'/zendesk_static_resources/images/error.svg')}";
+
+			function setSummaryText (status) {
+				j$("div#SalesforceSynced").text(status.recordSyncedSalesforce);
+				j$("div#ZendeskSynced").text(status.recordSyncedZendesk);
+				j$("div#syncErrored").text(status.recordError);
+
+				var totalRecordsSync = parseInt(status.recordSyncedSalesforce) + parseInt(status.recordSyncedZendesk);
+				var totalErrors = parseInt(status.recordError);
+
+				if (status.progress != 'Error' && totalRecordsSync == 0 && totalErrors != 0) {
+					j$("img#summary-icon").attr('src', WARNING_ICON);
+					j$("div.summary-item-error").show();
+				} else {
+					j$("img#summary-icon").attr('src', SUCCESS_ICON);
+				}
+
+				if (status.progress != 'Error' && totalErrors != 0) {
+					j$("div.summary-item-error").show();
+				}
+
+				if (status.progress == 'Error') {
+					j$("img#summary-icon").attr('src', ERROR_ICON);
+				}
+
+				if (totalErrors == 0) {
+					j$("div.summary-item-error").hide();
+				}
+			}
+			function cancelJob () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.cancelJob}", function(result, event) {
+					if(event.status){
+						window.clearInterval();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+					}
+				});
+			}
+
+			function skipManualMatch () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.skipManualMatch}", function(result, event) {
+					if(event.status){
+						window.clearInterval();
+						window.setInterval(function(){loadStatus();}, REFRESH_RATE);
+					}
+				});
+			}
+			function openManualMatch () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncMonitorCtrl.startManualMatch}", JOBID, function(result, event) {
+						if (event.status) {
+							var url = HtmlDecode(result);
+							navigateToURL(url);
+						}
+					});
+			}
+		})(jQuery);
+	</script>
+
+	<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+		<!-- HTML COMPONENTS -->
+		<c:BulkSyncNav />
+
+		<!-- Main content -->
+		<div class="main-content">
+			<div id="MonitorHeader" class="header-text"></div>
+			<div class="slds-grid">
+				<div class="slds-col"></div>
+				<div class="slds-col">
+					<div id="MonitorWrapper" class="monitor slds-m-top--xx-large slds-p-top--xx-large" style="display:none">
+						<div id="CompleteIconWrapper" style="display:none">
+							<img id="summary-icon" src=""/>
+							<div id="SyncCompleteText" class="sync-complete-text" >Bulk sync complete</div>
+						</div>
+						<div id="MonitorText1" class="monitor-text"></div>
+						<div id="MonitorText2" class="monitor-text"></div>
+						<div id="percentageWrapper" class="progress">
+							<div id="percentageBar" class="progress-bar progress-bar-striped active" role="progressbar"
+							  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+								<span id="progressText"></span>
+							</div>
+						</div>
+						<div id="MonitorText3"></div>
+						<div id="EditButtonWrapper" class="add-margin" style="display:none">
+							<button id="EditButton" class="slds-button slds-button--brand">Start Manual Match</button>
+						</div>
+
+						<button id="try-again-button" style="display:none" class="slds-button slds-button--neutral slds-m-top--medium slds-text-body--small">Try again</button>
+
+						<div id="SkipWrapper" class="add-margin" style="display:none"><span>or </span><span><a id="skipManualMatch">Skip this step</a></span></div>
+						<div id="SummaryWrapper" class="summary-wrapper" style="display:none">
+							<div class="summary-title-text">Summary</div>
+							<hr class="hr-2"></hr>
+							<div id="ZendeskSummaryWrapper">
+								<div class="summary-item-text" >Number of records synced to Zendesk Support</div>
+								<div id="ZendeskSynced" class="summary-item-number" ></div>
+							</div>
+							<div id="SalesforceSummaryWrapper">
+								<div class="summary-item-text">Number of records synced to Salesforce</div>
+								<div id="SalesforceSynced" class="summary-item-number"></div>
+							</div>
+							<div class="summary-item-error" style="display: none;">
+								<div class="summary-item-text">Number of errors <img style="vertical-align:top; margin-left: 3px;" id="summary-item-error-icon" src="" /></div>
+								<div id="syncErrored" class="error-item-number"></div>
+							</div>
+							<div style="clear:both;" />
+						</div>
+					</div>
+					<!-- Too many record warning-->
+					<div  id="tooManyRecordWarning"  style="display:none">
+						<div role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open">
+						  <div class="slds-modal__container">
+						    <div class="slds-modal__header">
+						      <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" id="tooManyRecordModalClose">
+						        <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+						          <use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+						        </svg>
+						        <span class="slds-assistive-text">Close</span>
+						      </button>
+						      <h2 class="slds-text-heading--medium">Too many records to manually match</h2>
+						    </div>
+						    <div class="slds-p-around--medium" style="background:#fff">
+						      <div>
+						        <p class="modalText marginBottom15">Bulk sync only supports up to 10,000 records when manual matching. Click "Skip this step" to continue to the next step, or improve the data quality and try to run bulk sync again.</p>
+						      </div>
+						    </div>
+						    <div class="slds-modal__footer">
+						      <button class="slds-button slds-button--neutral" id="tooManyRecordsModalCancel">OK</button>
+						    </div>
+						  </div>
+						</div>
+						<div class="slds-backdrop slds-backdrop--open"></div>
+					</div>
+					<!-- End of too many record warning -->
+					<!-- Cancel warning -->
+					<div  id="warningDialogue"  style="display:none">
+						<div role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open">
+						  <div class="slds-modal__container">
+						    <div class="slds-modal__header">
+						      <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" id="modalClose">
+						        <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+						          <use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+						        </svg>
+						        <span class="slds-assistive-text">Close</span>
+						      </button>
+						      <h2 id="header43" class="slds-text-heading--medium">Cancel sync?</h2>
+						    </div>
+						    <div class="slds-p-around--medium" style="background:#fff">
+						      <div>
+						        <p class="modalText marginBottom15">Are you sure you want to cancel the sync? Some or all sync progress will be lost and you will have to start over again.</p>
+						      </div>
+						    </div>
+						    <div class="slds-modal__footer">
+						      <button class="slds-button slds-button--neutral" id="modalCancel">Go Back</button>
+						      <button class="slds-button slds-button--brand" id="modalContinue">Cancel sync</button>
+						    </div>
+						  </div>
+						</div>
+						<div class="slds-backdrop slds-backdrop--open"></div>
+					</div>
+					<!-- End of cancel warning -->
+				</div>
+				<div class="slds-col"></div>
+			</div>
+		</div>
+		<!-- END of Main Content -->
+
+		<!-- FOOTER -->
+		<div class="footer slds-border--top slds-p-top--large slds-m-bottom--small">
+			<div class="footer-left">
+				<span class="slds-icon_container">
+					<svg aria-hidden="true" class="slds-icon slds-icon--x-small">
+						<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#clock')}"></use>
+					</svg>
+				</span>
+				<span class="footer-text"><a href="{!URLFOR($Page.BulkSyncHistory)}">History</a></span>
+				<span class="slds-icon_container footer-settings">
+					<svg aria-hidden="true" class="slds-icon slds-icon--x-small">
+						<use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#settings')}"></use>
+					</svg>
+				</span>
+				<span class="footer-text"><a href="{!URLFOR($Page.ZendeskOrgTab)}">Settings</a></span>
+			</div>
+			<div class="footer-right slds-p-right--small">
+				<span>
+					<button id="CancelButton" class="slds-button slds-button--neutral">Cancel</button>
+				</span>	
+			</div>
+			<div style="clear: both;" />
+		</div>
+		<!-- END OF FOOTER -->
+	</html>
+</apex:page>

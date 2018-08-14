@@ -1,0 +1,4 @@
+<!--Empty page will get displayed after evolve login success.
+showHeader,sidebar is set to false so that softphone and common header will not be displayed-->
+<apex:page sidebar="false" showHeader="false" readOnly="true" showChat="false" cache="false">
+</apex:page>

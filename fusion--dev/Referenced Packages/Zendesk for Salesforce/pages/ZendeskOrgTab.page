@@ -1,0 +1,347 @@
+<!-- Initially created to test/reorganize the mappings and syncing sections. -->
+<apex:page controller="Zendesk.ZendeskSetting" extensions="Zendesk.CtrlZendeskOrgSFAccountMapping" title="Edit Zendesk Support Organization Settings" id="pageId" tabstyle="Zendesk__tab"> 
+    <c:RedirectToTermsAndConditions />
+
+	<!-- For vertical tabs -->
+	<apex:includeScript value="/soap/ajax/36.0/connection.js"/>
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResource, '/Plugins/jVertTabs/js/jquery-1.4.1.min.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResource, '/Plugins/jVertTabs/js/jquery-jvert-tabs-1.1.4.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__ZendeskStaticResource, '/Plugins/jVertTabs/css/jquery-jvert-tabs-1.1.4.css')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__ZendeskStaticResource, '/Styles/Styles.css')}"/>
+
+	<apex:actionStatus id="tab">
+		<apex:facet name="start">
+			<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.25; z-index: 1000; background-color: black;">
+			  &nbsp;
+			</div>
+			<div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+			  <div style="display: inline-block; padding: 2px; background-color: #fff; width: 125px;">
+				  <img src="/img/loading.gif" style="float: left; margin: 8px;" />
+				  <span style="display: inline-block; padding: 10px 0px;">Please Wait...</span>
+			  </div>
+			</div>
+		</apex:facet>
+	</apex:actionStatus>
+
+	<script>
+		var j$ = jQuery.noConflict();
+
+		function setjVertTabs(tabname, selectedTab){
+			//Convert the divs into vertical tabs
+			if(selectedTab == null || selectedTab == ''){
+				j$(tabname).jVertTabs({});
+			}else{
+				j$(tabname).jVertTabs({
+					selected: selectedTab
+				});
+			}
+
+		}
+		//-------------------------------------
+		//VERTICAL TABS END
+
+		function changeCSSOpacity(chosen, blockClass){
+			chosen = escape(chosen);
+			if(chosen == 'No'){
+				j$(blockClass).fadeTo('slow', 0.20);
+			}else{
+				j$(blockClass).fadeTo('slow', 1);
+			}
+		}
+
+		function checkRerenderTable(a) {
+			if (a == true)
+				RerenderMappingTable();
+		}
+	</script>
+
+	<style>
+		.vtabs .vtabs-tab-column ul li a.open{
+		color: #78A300;
+		}
+
+		.vtabs .vtabs-tab-column ul li a.closed{
+		color: black;
+		}
+
+		.myActiveTab { background-color: #78A300; color:white; background-image:none; padding: 7px 10px 7px 10px;}
+		.myInactiveTab { background-color: white; color:black; background-image:none; padding: 7px 10px 7px 10px;}
+		.whiteBG { /*background-color: white; */}
+	</style>
+
+	<apex:sectionHeader title="Zendesk for Salesforce" subtitle="Global Settings" />
+	<c:AnalyticsRemoteSiteSetup />
+
+	<apex:pageMessages escape="false" id="errMsgs"/>
+
+	<!-- Authentication Component -->
+	<c:ZendeskGlobalAuthentication pageMessage="errMsgs" />
+
+	<apex:form id="formid">
+		<apex:actionFunction id="ValidateAll" name="ValidateAll" action="{!ValidateSettings}" rerender="ValidationSts"  status="ValidationSts" oncomplete="checkRerenderTable({!ValidationErrors})"/>
+		<apex:actionFunction id="RerenderMappingTable" name="RerenderMappingTable" rerender="mainTabPanelDiv"  status="ValidationSts" />
+<!-- Logging Level -->
+		<apex:pageBlock title="Logging Level" mode="edit" tabstyle="Zendesk__tab">
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton action="{!SaveLoggingLevel}" value="Save Logging Level"/>
+				<apex:commandButton action="{!runExpiredLogPurging}" value="Purge Log Now"/>
+				<apex:commandButton rendered="{!PurgeScheduleButtonActive}" action="{!scheduleLogPurging}" value="Schedule Purge Log"/>
+			</apex:pageBlockButtons>
+			<apex:pageBlockSection columns="1">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Logging Level" />
+					<apex:selectList value="{!LoggingLevel}" size="1">
+						<apex:selectOption itemValue="None" itemLabel="None" />
+						<apex:selectOption itemValue="Error" itemLabel="Error" />
+						<apex:selectOption itemValue="Debug" itemLabel="Debug" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Weeks to Retain Logs" />
+					<apex:selectList value="{!WeeksToRetainLogs}" size="1">
+						<apex:selectOption itemValue="2" itemLabel="2" />
+						<apex:selectOption itemValue="4" itemLabel="4" />
+						<apex:selectOption itemValue="6" itemLabel="6" />
+						<apex:selectOption itemValue="8" itemLabel="8" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+			<apex:pageBlockSection columns="2">
+				<apex:pageBlockSectionItem >
+					<apex:outputText >
+						Export Debug Data
+					</apex:outputText>
+
+					<apex:outputPanel >
+						<apex:commandLink action="{!ExportDebugData}" value="Export Debug Data" />
+						<br />
+						<apex:outputText >
+							<span style="font-weight:700;">Note:  </span>The "Export Debug Data" link above can be used to generate a .csv file for debugging purposes.  This should only be done upon request by your Zendesk support representative.
+						</apex:outputText>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+
+		<!-- Field Mapping Tabs -->
+		<apex:pageBlock id="mainTabPanelDiv" title="User and Organization Sync Settings">
+			<apex:pageBlockButtons location="top">
+				<input type="button" onclick="navigateToURL('{!$Page.ZendeskObjectMapping}');" value="Go to Mappings" class="btn"/>
+			</apex:pageBlockButtons>
+
+			<apex:actionStatus id="ValidationSts">
+				<apex:facet name="start">
+					<apex:pageMessage id="ValidationRunning" summary="Verifying your saved preferences.  Please wait." severity="INFO" strength="3"  />
+				</apex:facet>
+				<apex:facet name="stop">
+					<apex:pageMessage id="validationError" summary="Invalid mappings were detected and removed.  Please refresh the page and then verify your settings before continuing." severity="ERROR" strength="3" rendered="{!ValidationErrors}"  />
+				</apex:facet>
+			</apex:actionStatus>
+
+			<apex:outputPanel >
+				<h3>Object and Field Mappings</h3>
+				<p>
+					Use the "Go To Mappings" button above to access all of the app's settings that help map Salesforce Accounts, Contacts, and Leads to Zendesk Support Organizations and Users.
+				</p>
+				<br />
+			</apex:outputPanel>
+		</apex:pageBlock>
+
+<!--  Multiple Domains Ticket mapping -->
+		<div id="multipleDomainFormId">
+			<c:MultipleDomainTicketMapping />
+		</div>
+
+<!-- Ticket List Views -->
+		<apex:pageBlock title="Ticket List View for Salesforce Objects" mode="edit" tabstyle="Zendesk__tab">
+			<apex:pageBlockButtons location="top">
+				<apex:commandButton action="{!saveSettings}" value="Save"/>
+			</apex:pageBlockButtons>
+
+			<apex:pageBlockSection title="Filtering" columns="1">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Status filter" />
+					<apex:selectList value="{!statusFilter}" size="1">
+						<apex:selectOptions value="{!statusFilterOptions}"/>
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Priority filter" />
+					<apex:selectList value="{!priorityFilter}" size="1">
+						<apex:selectOptions value="{!priorityFilterOptions}"/>
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Type filter" />
+					<apex:selectList value="{!typeFilter}" size="1">
+						<apex:selectOptions value="{!typeFilterOptions}"/>
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection title="Sorting" columns="1">
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Sort field" />
+					<apex:selectList value="{!sortField}" size="1">
+						<apex:selectOptions value="{!sortColumns}"/>
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Sort descending" />
+					<apex:inputCheckbox value="{!sortDesc}"/>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockSection id="mapping_block" title="Mapping" columns="2">
+				<apex:pageBlockSectionItem id="mapping_block_section">
+					<apex:outputLabel value="Find account tickets by" />
+					<apex:outputPanel >
+						<apex:selectList size="1" value="{!accountLookupType}">
+							<apex:selectOption itemLabel="Default" itemValue=""  />
+							<apex:selectOption itemLabel="Zendesk Support Organization" itemValue="organization" />
+							<apex:selectOption itemLabel="Zendesk Support tag" itemValue="tags" />
+							<apex:selectOption itemLabel="Requester email address" itemValue="requester" />
+							<apex:selectOption itemLabel="Zendesk Support Organization Field" itemValue="zdfield" />
+							<apex:actionSupport event="onchange" action="{!ShowZDFields}" rerender="mapping_block" status="AccountTicketStatus"/>
+						</apex:selectList>
+						<apex:actionStatus id="AccountTicketStatus">
+							<apex:facet name="start">
+								<apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}" />
+							</apex:facet>
+						</apex:actionStatus>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="{!IF(ShowZDAcc,'Account Field', 'using field')}" />
+					<apex:selectList size="1" value="{!accountLookupField}">
+						<apex:selectOptions value="{!accountFieldOptions}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDAcc}" />
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDAcc}" >
+					<apex:outputLabel value="Organization Field"/>
+					<apex:selectList size="1" value="{!ZDFieldSelection}">
+						<apex:selectOptions value="{!ZDFields}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem />
+				<apex:pageBlockSectionItem />
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Find contact tickets by" />
+					<apex:outputPanel >
+						<apex:selectList size="1" value="{!contactLookupType}">
+							<apex:selectOption itemLabel="Requester email address" itemValue="requester" />
+							<apex:selectOption itemLabel="Zendesk Support tag" itemValue="tags" />
+							<apex:selectOption itemLabel="Zendesk Support User Field" itemValue="zdfield" />
+							<apex:actionSupport event="onchange" action="{!ShowZDFields}" rerender="mapping_block" status="ContactTicketStatus"/>
+						</apex:selectList>
+						<apex:actionStatus id="ContactTicketStatus">
+							<apex:facet name="start">
+								<apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}" />
+							</apex:facet>
+						</apex:actionStatus>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="{!IF(ShowZDCon,'Contact Field', 'using field')}" />
+					<apex:selectList size="1" value="{!contactLookupField}">
+						<apex:selectOptions value="{!contactFieldOptions}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDCon}" />
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDCon}" >
+					<apex:outputLabel value="User Field"/>
+					<apex:selectList size="1" value="{!ZDFieldSelectionCon}">
+						<apex:selectOptions value="{!ZDFieldsCon}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem />
+				<apex:pageBlockSectionItem />
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Find opportunity tickets by" />
+					<apex:selectList size="1" value="{!opportunityLookupType}">
+						<apex:selectOption itemLabel="Default" itemValue=""  />
+						<apex:selectOption itemLabel="Zendesk Support organization" itemValue="organization" />
+						<apex:selectOption itemLabel="Zendesk Support tag" itemValue="tags" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="using field" />
+					<apex:selectList size="1" value="{!opportunityLookupField}">
+						<apex:selectOptions value="{!opportunityFieldOptions}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem />
+				<apex:pageBlockSectionItem />
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="Find lead tickets by" />
+					<apex:outputPanel >
+						<apex:selectList size="1" value="{!leadLookupType}">
+							<apex:selectOption itemLabel="Requester email address" itemValue="requester" />
+							<apex:selectOption itemLabel="Zendesk Support tag" itemValue="tags" />
+							<apex:selectOption itemLabel="Zendesk Support User Field" itemValue="zdfield" />
+							<apex:actionSupport event="onchange" action="{!ShowZDFields}" rerender="mapping_block" status="LeadTicketStatus"/>
+
+						</apex:selectList>
+						<apex:actionStatus id="LeadTicketStatus">
+							<apex:facet name="start">
+								<apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}" />
+							</apex:facet>
+						</apex:actionStatus>
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem >
+					<apex:outputLabel value="{!IF(ShowZDLead,'lead field', 'using field')}" />
+					<apex:selectList size="1" value="{!leadLookupField}">
+						<apex:selectOptions value="{!leadFieldOptions}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDLead}" />
+
+				<apex:pageBlockSectionItem rendered="{!ShowZDLead}" >
+					<apex:outputLabel value="User Field"/>
+					<apex:selectList size="1" value="{!ZDFieldSelectionLead}">
+						<apex:selectOptions value="{!ZDFieldsLead}" />
+					</apex:selectList>
+				</apex:pageBlockSectionItem>
+
+				<apex:pageBlockSectionItem />
+				<apex:pageBlockSectionItem />
+
+				<apex:pageBlockSectionItem />
+				</apex:pageBlockSection>
+
+				<apex:pageBlockSection title="Advanced" columns="1">
+				<apex:pageBlockSectionItem helpText="Show tickets from the Zendesk Support organization that matches the Account name.">
+				<apex:outputLabel escape="false" value="Show Account tickets by<br/>Zendesk Support Organization" />
+				<apex:inputCheckbox value="{!accountNameOverride}"/>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+
+	</apex:form>
+
+	<script>
+		//  Kick off Validation
+		ValidateAll();
+	</script>
+</apex:page>

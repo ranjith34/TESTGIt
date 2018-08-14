@@ -1,0 +1,282 @@
+<apex:page controller="Zendesk.ZendeskTicketController">
+<apex:form id="all" >
+
+    <apex:actionFunction name="callout" action="{!Initialize}" rerender="all"/>
+    <apex:actionFunction name="save" action="{!Save}" />
+    <apex:outputpanel rendered="{!NOT Initialized}">
+        <script>
+        	Visualforce.remoting.timeout = 120000; // Set timeout at page level
+			//flag to prevent deleting of uploads when page is refreshed
+			//as a result of submitting a form
+			var isSubmitForm = false;
+
+            function addOnLoad(func) 
+            { 
+                var prev = window.onload; 
+                if (typeof window.onload != 'function') 
+                { 
+                    window.onload = func; 
+                } 
+                else
+                { 
+                    window.onload = function()  
+                    { 
+                        if (prev) 
+                        { 
+                            prev(); 
+                        } 
+                        func(); 
+                    } 
+                } 
+            }
+
+            addOnLoad(function()  
+            { 
+                callout();
+            });
+        </script>
+        <div align="center">
+            <br/><br/><br/><br/><br/><br/>
+        	<apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}" />
+        </div>
+    </apex:outputpanel>
+
+    <script>
+        var publicComment = "{!ticket.publicComment}";
+
+        function setPublicComment(commentOptions)
+        {
+            publicComment = commentOptions.value;
+        }
+
+        function alertPublicComment()
+        {
+            if (publicComment == "true")
+            {
+                var confirmation = confirm("You are about to post a public comment in Zendesk Support visible by the customer, do you wish to continue?");
+                if (confirmation)
+                {          
+                	executeSave();
+                }
+            }
+            else
+            {
+            	executeSave();
+            }
+        }
+        function executeSave() {
+			isSubmitForm = true;
+			save();
+        }
+    </script>
+
+    <apex:outputpanel rendered="{!Initialized && (error || credentialError)}">  
+        <apex:sectionHeader title="Zendesk Support Ticket" />
+
+        <apex:pageBlock rendered="{!NOT(credentialError)}" >
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton value="Go Back" action="{!GoBack}" />
+            </apex:pageBlockButtons>
+        
+            <apex:pageMessages />
+        </apex:pageBlock>
+        <apex:pageBlock rendered="{!credentialError}">
+        	<apex:outputText rendered="{!!ownCredentials}">
+				<p>In order to edit or create new Zendesk Support Tickets, you need to have your own Zendesk Support account.</p>
+			    <p>Please&nbsp;<apex:outputLink value="{!URLFOR($Page.Zendesk__ZendeskSettings)}?retURL={!URLENCODE('/apex/ZendeskTicketEdit')}">configure your own credentials</apex:outputLink>.</p>
+			</apex:outputText>
+        </apex:pageBlock>
+    </apex:outputpanel>
+    
+    <apex:outputpanel rendered="{!Initialized && !error && !credentialError}">  
+    
+        <apex:sectionHeader title="Zendesk Support Ticket" subtitle="#{!ticket.internalId} '{!ticket.subject}'" />
+        <apex:pageMessages />
+        
+        <apex:pageBlock title="View Zendesk Support Ticket">
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton rendered="{!editAllowed}" value="Edit" action="{!editTicket}"/>
+                <apex:commandButton rendered="{!newAllowed}" value="New" action="{!URLFOR($Page.ZendeskTicketFormSelection)}?referrer={!$CurrentPage.parameters.referrer}&entity={!$CurrentPage.parameters.entity}&fromticket={!$CurrentPage.parameters.fromTicket}&domainId={!$CurrentPage.parameters.domainId}"/>
+                <apex:commandButton rendered="{!ReadOnly}" value="Personal Settings" action="{!URLFOR($Page.ZendeskTicketEdit)}?referrer={!$CurrentPage.parameters.referrer}&entity={!$CurrentPage.parameters.entity}&fromticket={!$CurrentPage.parameters.fromTicket}&domainId={!$CurrentPage.parameters.domainId}"/>
+                <apex:commandButton value="Go Back" action="{!GoBack}" />
+            </apex:pageBlockButtons>
+        
+            <apex:pageBlockSection columns="2">
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Requester" />
+                <!--<apex:outputText >{!ticket.requester.name} 
+                  <apex:image value="{!ticket.requester.photoUrl}" style="height:14px;vertical-align:text-top" rendered="{!NOT(ISBLANK(ticket.requester.photoUrl))}"/>
+
+                </apex:outputText>-->
+                <apex:outputText >{!ticket.ReqName} 
+                  <apex:image value="{!ticket.requester.photoUrl}" style="height:14px;vertical-align:text-top" rendered="{!NOT(ISBLANK(ticket.requester.photoUrl))}"/>
+
+                </apex:outputText>
+              </apex:pageBlockSectionItem>
+        
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Created at" />
+                <apex:outputText value="{!ticket.created}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="CC" />
+                <apex:outputText value="{!ticket.collaborators}" />
+              </apex:pageBlockSectionItem>
+               
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Updated at" />
+                <apex:outputText value="{!ticket.updated}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Status" />
+                <apex:outputText value="{!ticket.status}" />
+              </apex:pageBlockSectionItem>
+
+			  	<apex:pageBlockSectionItem rendered="{!Brands.size > 0}">
+	              	<apex:outputLabel value="Brand" />
+                  	<apex:selectList value="{!ticket.brand_id}" size="1" disabled="true">
+    	            	<apex:selectOptions value="{!Brands}" />
+                	</apex:selectList>	
+				</apex:pageBlockSectionItem>
+              	<apex:pageBlockSectionItem rendered="{!Brands.size == 0}">
+
+				</apex:pageBlockSectionItem>
+                
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Solved at" />
+                <apex:outputText value="{!ticket.solved}" />
+              </apex:pageBlockSectionItem>
+              
+               <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Assigned at" />
+                <apex:outputText value="{!ticket.assigned}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Type" />
+                <apex:outputText value="{!ticket.ticketType}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Priority" />
+                <apex:outputText value="{!ticket.priority}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Assignee" />
+                <apex:outputText >{!ticket.assignee.name} 
+
+
+                  <apex:image value="{!ticket.assignee.photoUrl}" style="height:14px;vertical-align:text-top" rendered="{!NOT(ISBLANK(ticket.assignee.photoUrl))}"/>
+                  
+
+                </apex:outputText>
+              </apex:pageBlockSectionItem>
+        
+              <apex:pageBlockSectionItem >  
+                <apex:outputLabel value="Tags" />
+                <apex:outputText value="{!ticket.tags}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Due date" />
+                <apex:outputText value="{!ticket.dueDate}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Group" />
+                <apex:outputText value="{!ticket.supportGroup.name}" />
+              </apex:pageBlockSectionItem>
+        
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Organization" />
+                <apex:outputText value="{!ticket.organization}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Score" />
+                <apex:outputText value="{!ticket.score}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Via" />
+                <apex:outputText value="{!ticket.via}" />
+              </apex:pageBlockSectionItem>
+              
+              <apex:pageBlockSectionItem />
+
+              <apex:pageBlockSectionItem rendered="{!ticket.ticket_form_name != null}" >
+                <apex:outputLabel value="Form Name" />
+                <apex:outputText value="{!ticket.ticket_form_name}" />
+              </apex:pageBlockSectionItem>
+              
+            </apex:pageBlockSection>
+                
+            <div class="pbSubsection">
+              <apex:dataTable value="{!ticket.customFields}" var="field" styleClass="detailList" columnClasses="labelCol, dataCol">
+                <apex:column >{!field.title}</apex:column>
+                <apex:column >{!field.valueForDisplay}</apex:column>
+                <apex:column />
+                <apex:column />
+              </apex:dataTable>
+            </div>
+        
+            <apex:pageBlockSection columns="1">
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Description" />
+                <apex:outputText escape="false" value="{!HTMLENCODE(ticket.formatteddescription)}" />
+              </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+    
+      </apex:pageBlock>
+      <apex:pageBlock title="Add Comment" rendered="{!AND(ticket.canComment, canCreate)}">
+        <apex:pageBlockButtons location="top">
+          <apex:commandButton value="Add" onClick="alertPublicComment(); return false" />
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection columns="1">
+          <apex:pageBlockSectionItem >
+            <apex:inputTextarea id="NewComment" value="{!ticket.comment}" rows="8" style="width:100%;border:1px solid #A8A8A8;padding:3px" />
+          </apex:pageBlockSectionItem>
+				<apex:pageBlocksectionItem labelStyle="width: 50%;">
+				<apex:outputPanel layout="block">
+					<apex:selectRadio value="{!ticket.publicComment}" onchange="setPublicComment(this)">
+					<apex:selectOptions value="{!CommentVisibilityOptions}" />
+					</apex:selectRadio>
+				</apex:outputPanel>
+				<!--  For attachments start -->
+				<apex:outputPanel style="text-align: right; padding-top: 3px;" layout="block" styleClass="zendeskAttachment">
+					<span id="attachmentButton" onclick="return ZendeskTicketAttachmentModule.selectFile('{!$Component.tokenContainer}');">Attach file</span>
+					<div id="uploadNotes">
+						Max file size: 5MB
+					</div>
+					<div id="uploadFileDisplay"></div>
+					<apex:inputHidden value="{!UploadTokens}" id="tokenContainer" />
+				</apex:outputPanel>
+				<!--  For attachments end -->
+			</apex:pageBlocksectionItem>
+        </apex:pageBlockSection>
+      </apex:pageBlock>
+      <input type="hidden" name="currentVFName" value="{!$CurrentPage.Name}" />
+      
+      <c:ZendeskTicketComments ticket="{!ticket}"/>
+      
+    </apex:outputpanel>
+</apex:form>
+<!--  For attachments start -->
+<apex:stylesheet value="{!$Resource.Zendesk__ZendeskStyleSheet}"/>
+<script src="../../soap/ajax/37.0/connection.js" type="text/javascript"></script>
+<script src="../../soap/ajax/37.0/apex.js" type="text/javascript"></script>
+<script type="text/javascript"> sforce.connection.sessionId='{!GETSESSIONID()}'; </script>
+<apex:includeScript value="{!$Resource.Zendesk__ZendeskTicketAttachmentJS}"/>
+<script type="text/javascript">
+	ZendeskTicketAttachmentModule.init(
+		"{!$RemoteAction.ZendeskTicketController.deleteUploadFromZendesk}",
+		"{!$RemoteAction.ZendeskTicketController.deleteUploadedAttachments}",
+		"{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}",
+		"uploadFileDisplay"
+	);
+</script>
+<!--  For attachments end -->
+</apex:page>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>OOO Email Template</name>
+    <style>freeForm</style>
+    <subject>RE:  {!Case.Subject}</subject>
+    <textOnly>Thank you for reaching out to YETI. To prepare for the remainder of 2018 and better serve our dealers, our team will be attending sales training Wednesday and Thursday this week. We will respond to all inquiries as quickly as possible after the meeting wraps up.
+
+
+
+Sincerely,
+
+
+
+Account Management Team
+
+YETI
+
+512.394.0222
+
+sales@yeti.com
+
+yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

@@ -1,0 +1,962 @@
+<!--*************************************************************************************************************************
+Name: CreateOuote_YETI.cmp      
+Description: Create Quote Screen  
+
+Date         Version          Author             Summary of Changes 
+*****************************************************************************************************************************
+07/24/2018    1.0        Ranjith Thadakala       Initial Release
+**************************************************************************************************************************-->
+
+<aura:component  controller="CreateQuoteController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="Coolerslist" type="List" />
+    <aura:attribute name="Customlist" type="List" />
+    <aura:attribute name="customizerlist" type="List" />
+    <aura:attribute name="NotCustomlist" type="List" />
+    <aura:attribute name="cooler" type="Boolean" default="true" />
+    <aura:attribute name="custom" type="Boolean" default="true" />
+    <aura:attribute name="noncustom" type="Boolean" default="true" />
+    <aura:attribute name="OppId" type="String" />
+    <aura:attribute name="AccId" type="String" />
+    <aura:attribute name="customProductId" type="String" />
+    <aura:attribute name="quoteID" type="Id" />
+    <aura:attribute name="insertList" type="List" />
+    <aura:attribute name="updatedList" type="List" />
+    <aura:attribute name="itemnumber" type="Integer" default="00000" />
+    <aura:attribute name="CitemNumber" type="Integer" />
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:attribute name="overlay" type="Aura.Component" />
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+    
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+    <aura:handler name="lineItemsevnt" event="c:lineItemsevent" action="{!c.handleComponentEvent}" />
+    <aura:handler name="selectedProductEvt" event="c:TopProducts" action="{!c.handleTopProductevent}"/>
+   
+    <!-- CreateQuote Screen Header Starts Here -->
+    
+    <div>
+        <div class="slds-page-header " style="background: white; border-radius: 0;">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media slds-no-space slds-grow">
+                        <div class="slds-media__figure">
+                            <span></span>
+                        </div>
+                        <div class="slds-media__body">
+                            <nav>
+                                <ol class="slds-breadcrumb slds-line-height_reset">
+                                    <li class="slds-breadcrumb__item">
+                                        <span class="slds-text-heading_small">
+                                            <h2 style="color:  rgb(112, 110, 107);">Create Quote</h2>
+                                        </span>
+                                    </li>
+                                </ol>
+                            </nav>
+                           <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-truncate" title="Customer Name">Customer Name</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-no-flex slds-grid slds-align-top">
+                    <div class="slds-button-group"  role="group">
+                        <lightning:button label="Cancel"  />
+                        <lightning:button label="Save and Continue"  onclick="{!c.saveandContinueQuoteDetails}"/>
+                        <lightning:button label="Save" onclick="{!c.saveQuoteHeader}" />
+                    </div>
+                </div>
+             </div>
+             <div class=" slds-grid slds-wrap">
+                <div class="slds-size_1-of-2">
+                    <ul class="slds-grid slds-page-header__detail-row">
+                         &nbsp; &nbsp; &nbsp;
+                        <li class="slds-page-header__detail-block">
+                            <lightning:input type="date" label="In Hands Date" name="date" aura:id="inhanddateId" />
+                        </li>
+                        <li class="slds-page-header__detail-block" style="padding-left: 0px; padding-right: 0px;">
+                            <lightning:input type="date" label="Do Not Ship Before" name="date" aura:id="DoNotShipBeforeId" />
+                        </li>
+                        
+                    </ul>
+                     <ul class="slds-grid slds-page-header__detail-row">
+                         &nbsp; &nbsp; &nbsp;
+                        <li class="slds-page-header__detail-block">
+                            
+                                
+                            <div class="slds-button-group slds-grid slds-wrap"  role="group">
+                                <div class="slds-size_1-of-2">
+                                    <label class="slds-form-element__label" for="text-input-id-1">Discount</label><br/>
+                                <button class="slds-button slds-button_outline-brand btncss btn "  aria-pressed="true" >$</button>
+                                  <button class="slds-button slds-button_outline-brand btncss btn">%</button>
+                                     
+                                </div>
+                                 <div class="slds-size_1-of-2 slds-align_absolute-center">  
+                                  <lightning:input placeholder="value" name="text" aura:id="DiscountId" />
+                                </div>
+                            </div>
+                           
+                           
+                        </li>
+                      
+                        <li class="slds-page-header__detail-block" style="padding-left: 0px; padding-right: 0px;">
+                            <!--lightning:input label="Discount Reason" name="text" aura:id="DiscountId" /-->
+                             <ui:inputTextArea aura:id="DiscountreasonId" label="Discount Reason"  rows="1"/>
+                        </li>
+                       
+                    </ul>
+                </div>
+                <div class="slds-size_1-of-2 " >
+                   <div class=" slds-grid slds-wrap slds-float_right" style="width: 277px;" >
+                     <div class="slds-size_1-of-2" >
+                         <ul>
+                            <li>
+                                <span ><h2 class="fontcss" >Subtotal</h2></span>
+                            </li>
+                            <li>
+                                <span ><h2 class="fontcss" >Discount Item</h2></span>
+                            </li>                
+                            <li>
+                                <span><h2 class="fontcss">Tax</h2></span>
+                            </li>                
+                             <li>    
+                                 <span > <h2 class="fontcss" >Shipping Cost</h2></span>
+                             </li>
+                             <li>
+                                <span > <h2 class="slds-page-header__title">Total</h2></span>
+                             </li>              
+                         </ul>
+                     </div>
+                     <div class="slds-size_1-of-2"  >
+                          <ul>
+                            <li>
+                                <span ><h2 class="fontvcss">Value</h2></span>
+                             </li>               
+                            <li>  
+                                <span ><h2 class="fontvcss">Value</h2></span>
+                            </li>               
+                             <li>
+                                <span ><h2 class="fontvcss">Value</h2></span>
+                            </li>
+                            <li>
+                                <span ><h2 class="fontvcss">Value</h2></span>
+                            </li>
+                            <li>
+                                <span ><h2 class="slds-page-header__title">Value</h2></span>
+                            </li>
+                          </ul> 
+                     </div>
+                  </div>
+               </div>
+           </div>
+         </div>
+     </div>
+    <!-- Header Ends Here -->
+    
+    
+    
+  <div style="margin-top: 12px;">
+     <lightning:tabset selectedTabId="one" class="tabstyle">
+       <lightning:tab label="ORDER" id="one">
+           <ui:scrollerWrapper class="scrollerSize">
+              <div style="width=100%; height=100%;" >
+                
+                <!-- search bar starts here -->
+                <c:Product_Search_p objectAPIName="Product2" IconName="standard:pricebook" />
+                <!-- search bar Ends here --> 
+                  
+                <br/>  
+                  
+                <!-- Top Products -->        
+                <section class="slds-accordion__section section-styles slds-is-open" aura:id="TopProductsId">
+                  <div class="slds-accordion__summary summary-styles">
+                    <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+                      <lightning:icon class="iconclass" iconName="utility:down" alternativeText="down" onclick="{!c.ToggleTopProducts}" /> &nbsp;&nbsp;
+                      <span class="slds-truncate" style="padding-top: 6px; font-weight: 700;">TOP SELLERS</span>
+                    </h3>
+                  </div>
+                  <div aria-hidden="true" class="slds-accordion__content" aura:id="accordion-Top-Products">
+                    <ui:scrollerWrapper class="outerScroller">  
+                     <c:TopProductsCmp />
+                     </ui:scrollerWrapper>
+                  </div>
+                </section>
+                <!-- Top Products ends here -->           
+                
+                <br/>
+                 
+                 <!-- Catogery Section -->
+                <div class=" slds-grid slds-wrap">
+                   <div class="slds-size_1-of-3" style="height: 74px;" >
+                      <!--lightning:combobox class="slds-float_left" name="general"  placeholder="Filter By" /--> 
+                   </div>
+                   <div class="slds-size_1-of-3 slds-align_absolute-center"><H1 style="color: rgb(112, 110, 107);" >View:</H1>&nbsp;&nbsp;&nbsp;	 
+                        <a class="inlinetabs" aura:id="tabAll" onclick="{!c.showAll}"  >All</a> &nbsp;| &nbsp;
+                        <a class="inlinetabs" onclick ="{!c.showCoolers}" >Stock</a>&nbsp; | &nbsp;
+                        <a class="inlinetabs" onclick ="{!c.showCustom}" >Custom</a>&nbsp; | &nbsp;
+                        <a class="inlinetabs" onclick ="{!c.showNonCustom}" >Custom Hard Coolers</a>
+                   </div>
+                   
+                   <div class="slds-size_1-of-3 "><lightning:button variant="brand" class="slds-float_right" label="Get Pricing" title="Brand action" /></div>
+                </div>  
+                 <!-- Catogery Section Ends here -->  
+                 
+                 <!-- Spinner -->
+               <aura:if isTrue="{! v.loaded }">
+                  <lightning:spinner aura:id="mySpinner"/> 
+               </aura:if>
+                 <!-- Spinner Ends --> 
+                  
+                      
+                  
+               <aura:if isTrue="{!v.cooler}">               
+                        <section class="slds-accordion__section section-styles slds-is-open" aura:id="sectionId">
+    <div class="slds-accordion__summary summary-styles " style="margin-bottom: 0px; ">
+        <div class="slds-text-heading_small slds-accordion__summary-heading " style="height: 35px;" >
+            <div role="group" style="align-self: center;" >
+                                 <div style="float:left;"> <lightning:icon class="iconclass" iconName="utility:down" alternativeText="down" onclick ="{!c.changeicon}"/> </div>
+            <div class="slds-truncate"  style=" font-weight: 700; float:left;">STOCK</div> 
+                                  
+                                     <div class="oval slds-align_absolute-center" style="  float:left;margin-left:7px;">
+                                    <b style="color: white;">{!v.Coolerslist.length}</b>
+                                      </div>
+                                  
+                            </div>
+        </div>
+    </div>
+    <div aria-hidden="true" class="slds-accordion__content" aura:id="accordion-details-01">
+        <table class="slds-table  slds-table_cell-buffer">
+            <tbody>
+                <aura:iteration items="{!v.Coolerslist}" var="cooleritem">
+                    <tr class="{!(v.Coolerslist.length > 1 ? 'slds-border_bottom' : '')}">
+                        <!--th scope="row" class="slds-float_left" style=" background-color: white;"-->
+                            <div class="slds-truncate slds-grid slds-wrap" style="margin-top: 12px;" >
+                                 <div  class="slds-size_1-of-2 ">
+                                      <div class="slds-truncate slds-grid slds-wrap" >
+                                <div class="slds-size_1-of-6 " style="width: auto;">
+                                    <img src="{!cooleritem.ProductLocation__c}" style="height: 88px;padding-left: 62px;padding-right: 20px;" />
+                                </div>
+                                <div class="slds-size_1-of-3 ">
+                                    <span class="slds-text-heading_small" style="font-weight: 700;">{!cooleritem.Name}</span><br/>
+                                    <span class="slds-text-heading_small">{!cooleritem.Description}</span><br/><br/>
+                                    <span class="slds-text-heading_small" style="font-weight: 700;color: #34BC6E;">Available: 323</span>
+                                </div>
+                                 <div class="slds-size_1-of-3 slds-align_absolute-center" >
+                                <aura:if isTrue="{!(cooleritem.UPK__c != null ? 'true' : 'false')}">
+                                    
+                                                      <lightning:button name="{!cooleritem.UPK__c +'/'+ cooleritem.Id}" class="Addbtn" variant="brand" label="Add Embellishment" title="Brand action" onclick="{!c.AddEmblishment}" />
+                                                       
+                               </aura:if>
+                                </div>
+                                     </div>
+                              </div>
+                        <!--/th-->
+                        <!--td class="slds-float_left slds-size_1-of-5  slds-align_absolute-center" data-label="Add Emblishment" style=" background-color: white;">
+                           <aura:if isTrue="{!(cooleritem.UPK__c != null ? 'true' : 'false')}">
+                                                      <lightning:button name="{!cooleritem.UPK__c +'/'+ cooleritem.Id}"  variant="brand" label="Add Embellishment" title="Brand action" onclick="{!c.AddEmblishment}" />
+                                                        
+                                                    </aura:if>                         
+                        </td-->
+
+                        <!--td class="slds-float_right" style=" background-color: white; padding-right: 0px;padding-left: 0px;"-->
+                           
+                            <div class="slds-size_1-of-2">
+
+<!--
+
+                                <div class="slds-size_1-of-2" style="width: 191px;">
+
+                                    <ul>
+                                        <li >
+                                            <span>
+                                            <h2 style="color:  rgb(112, 110, 107);">Quantity</h2>
+                                            </span>
+                                        </li>
+                                        <li class="input-styles">
+                                             <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand">Button</button>
+                                            <button class="slds-button slds-button_outline-brand">Button</button>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <span >
+                                            <h2 style="color:  rgb(112, 110, 107);">Amount</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span >
+                                            <h2 style="color:  rgb(112, 110, 107);">Tax</h2>
+                                            </span>
+                                        </li>
+                                        <li class="input-styles">
+                                            <span >
+                                            <h2 style="color:  rgb(112, 110, 107);">Discount</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span >
+                                            <h2 class="slds-page-header__title">Total</h2>
+                                            </span>
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+                                <div class="slds-size_1-of-2" style="width: 191px;">
+                                  
+                                    <ul>
+                                        <li >
+                                            <span>
+                                            <h2 style="color:  rgb(112, 110, 107);"></h2>
+                                            </span>
+                                        </li>
+                                        <li class="input-styles">
+
+
+                                            <ui:inputText class="slds-input" />
+
+                                        </li>
+                                        <li>
+                                            <span>
+                                            <h2 style="color:  rgb(112, 110, 107);">Value</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span >
+                                            <h2 style="color:  rgb(112, 110, 107);">Value</h2>
+                                           </span>
+                                        </li>
+                                        <li class="input-styles">
+
+                                            <ui:inputText class="slds-input" />
+
+                                        </li>
+
+                                        <li>
+                                            <span >
+                                            <h2 class="slds-page-header__title">Value</h2>
+                                            </span>
+                                        </li>
+                                        
+                                        
+                                        
+                                        <li>
+                                            <span>
+                                               <a name = "Stock"  id = "{!cooleritem.Id}" onclick = "{!c.deleteItem}">Remove</a>
+                                            </span>
+                                        </li>
+
+
+                                    </ul>
+
+                                </div>
+ -->                             <table >
+                                 <tbody class="slds-float_right" >
+
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Quantity">
+                                        <h2 class="fontcss" >Quantity</h2>
+                                     </div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Units</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Cases</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr>
+                                <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Subtotal">
+                                        <h2 class="fontcss" >Subtotal</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$199.9</div>
+                                 </td>
+                                </tr> 
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Discount">
+                                        <h2 class="fontcss" >Discount</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn "  aria-pressed="true" >$</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">%</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Tax">
+                                         <h2 class="fontcss" >Tax</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$16.50</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Total">Total</div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$216.49</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div ></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div><a>Remove</a></div>
+                                 </td>
+                                </tr> 
+                                </tbody>
+                                </table>
+                                
+                                <div>
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                        <!--/td-->
+                    </tr>
+
+                </aura:iteration>
+            </tbody>
+        </table>
+
+    </div>
+</section>
+      </aura:if> 
+      <br/><br/>                 
+  <aura:if isTrue="{!v.custom}">                   
+    <section class="slds-accordion__section section-styles slds-is-open" aura:id="section2Id">
+       <div class="slds-accordion__summary summary-styles " style="margin-bottom: 0px; ">
+          <div class="slds-text-heading_small slds-accordion__summary-heading " style="height: 35px;" >
+            <div role="group" style="align-self: center;" >
+               <div style="float:left;"> <lightning:icon class="iconclass" iconName="utility:down" alternativeText="down" onclick ="{!c.changeicon1}"/> </div>
+               <div class="slds-truncate"  style=" font-weight: 700; float:left;">CUSTOM</div> 
+               <div class="oval slds-align_absolute-center" style="  float:left;margin-left:7px;">
+                 <b style="color: white;">{!v.Customlist.length}</b>
+               </div>
+            </div>
+          </div>
+       </div>    
+      <!--div class="slds-accordion__summary summary-styles " style="margin-bottom: 0px; ">
+        <h3 class="slds-text-heading_small slds-accordion__summary-heading">
+
+            <lightning:icon class="iconclass" iconName="utility:down" alternativeText="down" onclick="{!c.changeicon1}" /> &nbsp;&nbsp;
+            <span class="slds-truncate" style="
+                       padding-top: 6px; font-weight: 700;">CUSTOM</span> &nbsp;&nbsp;
+            <span style="
+                       padding-top: 6px;"><div class="oval slds-align_absolute-center">
+                    <b style="color: white;">{!v.Customlist.length}</b>
+                </div></span>
+
+        </h3>
+
+    </div-->
+    <div aria-hidden="true" class="slds-accordion__content" aura:id="accordion-details-02">
+        <table class="slds-table  slds-table_cell-buffer">
+            <tbody>
+                <aura:iteration items="{!v.Customlist}" var="customitem">
+                    
+                    <tr class="{!(v.Customlist.length > 1 ? 'slds-border_bottom' : '')}">
+                        <div class="slds-grid slds-wrap" style="margin-top: 12px;" >
+                          <!--th scope="row" class="slds-float_left slds-size_1-of-5 rowbordercss" style=" background-color: white;"-->
+                            <td   class="slds-size_1-of-4 rowbordercss">
+                              <div class="slds-truncate slds-grid slds-wrap" title="Cloudhub">
+
+                                <div class="slds-size_1-of-3 " style="width: auto;">
+                                    <img src="{!customitem.ProductLocation__c}" style="height: 88px;padding-left: 62px;padding-right: 20px;" />
+                                </div>
+                                <div class="slds-size_1-of-2 ">
+                                    <span class="slds-text-heading_small" style="font-weight: 700;">{!customitem.Name}</span><br/>
+                                    <span class="slds-text-heading_small">{!customitem.Description}</span><br/><br/>
+                                    <span class="slds-text-heading_small" style="font-weight: 700;color: #34BC6E;">Available: 323</span><br/>
+                                     <aura:iteration items="{!customitem.jsondata__r}" var="customizeritemdata">
+                                         <aura:if isTrue="{!(customizeritemdata.ramsideloc == 'front' ? 'true' : 'false')}">
+                                         <span class="slds-text-heading_small"> <span class="slds-text-heading_small"  style="font-weight: 700;">Front</span> : {!customizeritemdata.customtype}</span><br/>
+                                         </aura:if>
+                                         <aura:if isTrue="{!(customizeritemdata.ramsideloc == 'back' ? 'true' : 'false')}">
+                                         <span class="slds-text-heading_small"> <span class="slds-text-heading_small"  style="font-weight: 700;">BACK</span> : {!customizeritemdata.customtype}</span><br/>
+                                         </aura:if>
+                                    </aura:iteration>
+                                </div>
+                              </div>
+                            </td>
+                            <!--/th-->
+                        
+                         <!--td class="slds-float_left slds-size_1-of-5 rowbordercss slds-align_absolute-center" data-label="Add Emblishment" style=" background-color: white;">
+                           <aura:if isTrue="{!(customitem.UPK__c != null ? 'true' : 'false')}">
+                                                      <lightning:button name="{!customitem.UPK__c +'/'+ customitem.Id}"  variant="brand" label="Add Embellishment" title="Brand action" onclick="{!c.AddEmblishment}" />
+                                                        
+                                                    </aura:if>                         
+                        </td-->
+                            
+                            
+                        <td style=" background-color: white;" class="slds-size_1-of-4 rowbordercss">
+                          
+                           <div class="slds-grid slds-wrap" > 
+                              <div 	class="slds-size_1-of-2" > <span class="slds-text-heading_small"  style="font-weight: 700;">FRONT</span></div>
+                             
+                              <div class="slds-size_1-of-2 slds-float_right " >
+                                  <a class="slds-float_right" name="{!customitem.itemnumber}" onclick="{!c.editCustomizer}" >Edit</a><br/>
+                                  <a class="slds-float_right" >Upload Laser Art</a><br/>
+                                  <a class="slds-float_right" >Remove Front</a>
+                              </div>
+                          </div>
+                            
+                            <br/>
+                            
+                          <aura:iteration items="{!customitem.jsondata__r}" var="customizeritem"> 
+                             <div class="slds-grid slds-wrap">
+                                <aura:if isTrue="{!(customizeritem.ramsideloc == 'front' ? 'true' : 'false')}">
+                                   <div class="slds-size_1-of-2 slds-align_absolute-center" >
+                                     <figure>
+                                      <img src="{!customizeritem.custpreview}" style="height: 95px;" />
+                                      <figcaption class="slds-align_absolute-center"><a>{!customizeritem.customtype}</a></figcaption>
+                                     </figure>
+                                   </div>
+                                   <div class="slds-size_1-of-2">
+                                       <figure>
+                                      <img  src="{!customizeritem.laserimage}" style="height: 95px;" />
+                                       <figcaption class="slds-align_absolute-center"><a>Laser Art</a></figcaption>
+                                     </figure>
+                                   </div> 
+                                </aura:if>
+                             </div >
+                          </aura:iteration>
+                         
+                                                     
+                        </td>
+                            
+                        <td style=" background-color: white;" class="slds-size_1-of-4 rowbordercss">
+                          <div class="slds-grid slds-wrap" > 
+                              <div 	class="slds-size_1-of-2" > <span class="slds-text-heading_small"  style="font-weight: 700;">BACK</span></div>
+                             
+                              <div class="slds-size_1-of-2 slds-float_right " >
+                                  <a class="slds-float_right" >Edit</a><br/>
+                                  <a class="slds-float_right" >Upload Laser Art</a><br/>
+                                  <a class="slds-float_right" >Remove Back</a>
+                              </div>
+                          </div>
+                            
+                            <br/>
+                            
+                          <aura:iteration items="{!customitem.jsondata__r}" var="customizeritem"> 
+                             <div class="slds-grid slds-wrap">
+                                   <aura:if isTrue="{!(customizeritem.ramsideloc == 'back' ? 'true' : 'false')}">
+                                      <div class="slds-size_1-of-2 slds-align_absolute-center" >
+                                         <figure>
+                                          <img src="{!customizeritem.custpreview}" style="height: 95px;" />
+                                          <figcaption class="slds-align_absolute-center"><a>{!customizeritem.customtype}</a></figcaption>
+                                        </figure>
+                                      </div>
+                                      <div class="slds-size_1-of-2">
+                                          <figure>
+                                           <img  src="{!customizeritem.laserimage}" style="height: 95px;" />
+                                          <figcaption class="slds-align_absolute-center"><a>Laser Art</a></figcaption>
+                                        </figure>
+                                      </div> 
+                                  </aura:if>
+                             </div >
+                          </aura:iteration>
+                        </td>  
+                                                   
+                        
+
+                        <td class="slds-float_right slds-size_1-of-4" style=" background-color: white;padding-right: 0px;padding-left: 30px;">
+                            <!--div class="slds-truncate slds-grid slds-wrap">
+
+
+
+                                <div class="slds-size_1-of-2" >
+
+                                    <ul>
+                                        <li class="input-styles">
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Quantity</h2>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Amount</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Tax</h2>
+                                            </span>
+                                        </li>
+                                        <li class="input-styles">
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Discount</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 class="slds-page-header__title">Total</h2>
+                                            </span>
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+                                <div class="slds-size_1-of-2" >
+
+                                    <ul>
+                                        <li class="input-styles">
+
+
+                                            <ui:inputText class="slds-input" />
+
+                                        </li>
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Value</h2>
+                                            </span>
+                                        </li>
+
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 style="color:  rgb(112, 110, 107);">Value</h2>
+                                            </span>
+                                        </li>
+                                        <li class="input-styles">
+
+                                            <ui:inputText class="slds-input" />
+
+                                        </li>
+
+                                        <li>
+                                            <span class="slds-text-heading_small">
+                                                <h2 class="slds-page-header__title">Value</h2>
+                                            </span>
+                                        </li>
+                                        <br/>
+
+                                        <li>
+                                            <span>
+                                               <a name = "Custom"  id = "{!customitem.Id}" onclick = "{!c.deleteItem}">Remove</a>
+                                            </span>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                                <div>
+                                </div>
+
+
+
+                            </div-->
+                            
+                             <table >
+                                 <tbody class="slds-float_right" >
+
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Quantity">
+                                        <h2 class="fontcss" >Quantity</h2>
+                                     </div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Units</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Cases</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr>
+                                <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Subtotal">
+                                        <h2 class="fontcss" >Subtotal</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$199.9</div>
+                                 </td>
+                                </tr> 
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Discount">
+                                        <h2 class="fontcss" >Discount</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn"  aria-pressed="true" >$</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">%</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Tax">
+                                         <h2 class="fontcss" >Tax</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$16.50</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Total">Total</div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$216.49</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div ></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div><a>Remove</a></div>
+                                 </td>
+                                </tr> 
+                                </tbody>
+                                </table>
+                            
+                            
+                            
+                        </td>
+                       </div> 
+                    </tr>
+
+                </aura:iteration>
+            </tbody>
+        </table>
+
+    </div>
+</section>  
+</aura:if> <br/><br/>
+ <aura:if isTrue="{!v.noncustom}">  
+     <section class="slds-accordion__section section-styles slds-is-open" aura:id="section3Id">
+    <div class="slds-accordion__summary summary-styles " style="margin-bottom: 0px; ">
+        <div class="slds-text-heading_small slds-accordion__summary-heading " style="height: 35px;" >
+            <div role="group" style="align-self: center;" >
+                                 <div style="float:left;"> <lightning:icon class="iconclass" iconName="utility:down" alternativeText="down" onclick ="{!c.changeicon2}"/> </div>
+            <div class="slds-truncate"  style=" font-weight: 700; float:left;">CUSTOM HARD COOLERS</div> 
+                                  
+                                     <div class="oval slds-align_absolute-center" style="  float:left;margin-left:7px;">
+                                    <b style="color: white;">{!v.Coolerslist.length}</b>
+                                      </div>
+                                  
+                            </div>
+        </div>
+    </div>
+    <div aria-hidden="true" class="slds-accordion__content" aura:id="accordion-details-03">
+        <table class="slds-table  slds-table_cell-buffer">
+            <tbody>
+                <aura:iteration items="{!v.Coolerslist}" var="cooleritem">
+                    <tr class="{!(v.Coolerslist.length > 1 ? 'slds-border_bottom' : '')}">
+                        <!--th scope="row" class="slds-float_left" style=" background-color: white;"-->
+                            <div class="slds-truncate slds-grid slds-wrap" style="margin-top: 12px;" >
+                                 <div  class="slds-size_1-of-2 ">
+                                      <div class="slds-truncate slds-grid slds-wrap" >
+                                <div class="slds-size_1-of-6 " style="width: auto;">
+                                    <img src="{!cooleritem.ProductLocation__c}" style="height: 88px;padding-left: 62px;padding-right: 20px;" />
+                                </div>
+                                <div class="slds-size_1-of-3 ">
+                                    <span class="slds-text-heading_small" style="font-weight: 700;">{!cooleritem.Name}</span><br/>
+                                    <span class="slds-text-heading_small">{!cooleritem.Description}</span><br/><br/>
+                                    <span class="slds-text-heading_small" style="font-weight: 700;color: #34BC6E;">Available: 323</span>
+                                </div>
+                                 <div class="slds-size_1-of-3 slds-align_absolute-center" >
+                                <aura:if isTrue="{!(cooleritem.UPK__c != null ? 'true' : 'false')}">
+                                   <lightning:button name="{!cooleritem.UPK__c +'/'+ cooleritem.Id}" class="Addbtn" variant="brand" label="Add Embellishment" title="Brand action" onclick="{!c.AddEmblishment}" />
+                                </aura:if>
+                                </div>
+                                     </div>
+                              </div>
+                      
+                           
+                            <div class="slds-size_1-of-2">
+                            <table >
+                                 <tbody class="slds-float_right" >
+
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Quantity">
+                                        <h2 class="fontcss" >Quantity</h2>
+                                     </div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Units</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">Cases</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr>
+                                <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Subtotal">
+                                        <h2 class="fontcss" >Subtotal</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$199.9</div>
+                                 </td>
+                                </tr> 
+                                 <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Discount">
+                                        <h2 class="fontcss" >Discount</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div></div>
+                                 </td>
+                                </tr>
+                               <tr>
+     
+                                 <td  scope="row" style="background: white;">
+                                    <div class="slds-button-group"  role="group">
+                                            <button class="slds-button slds-button_outline-brand btncss btn "  aria-pressed="true" >$</button>
+                                            <button class="slds-button slds-button_outline-brand btncss btn">%</button>
+                                  </div>
+                                 </td>
+                                   <td  style="background: white;" >
+                                    <div class="input-styles" ><ui:inputText class="slds-input" /></div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Tax">
+                                         <h2 class="fontcss" >Tax</h2></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$16.50</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div  title="Total">Total</div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div>$216.49</div>
+                                 </td>
+                                </tr> 
+                                     <tr>
+     
+                                 <td scope="row"  style="background: white;">
+                                    <div ></div>
+                                 </td>
+                                 <td  style="background: white;" >
+                                    <div><a>Remove</a></div>
+                                 </td>
+                                </tr> 
+                                </tbody>
+                                </table>
+                                
+                                <div>
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                        <!--/td-->
+                    </tr>
+
+                </aura:iteration>
+            </tbody>
+        </table>
+
+    </div>
+</section>
+    
+ </aura:if> 
+                    
+                    <br/>
+                  
+             <div class="slds-col slds-no-flex slds-grid  slds-float_right">
+
+                    <div class="slds-button-group"  role="group">
+                        <lightning:button label="Cancel"  />
+                        <lightning:button label="Save and Continue"  onclick="{!c.saveandContinueQuoteDetails}"/>
+                        <lightning:button label="Save" onclick="{!c.saveQuoteHeader}" />
+                    </div>
+                </div>
+          
+    </div>
+       </ui:scrollerWrapper>         
+     </lightning:tab>
+            <lightning:tab label="ADDRESS" id="two">
+                Two Content !
+            </lightning:tab>
+            <lightning:tab label="SAP ORG DETAILS" id="three">
+                Three Content !
+            </lightning:tab>
+            <lightning:tab label="SYSTEM" id="four">
+                Three Content !
+            </lightning:tab>
+            
+        </lightning:tabset>
+    </div>
+</aura:component>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AutoResponseRules xmlns="http://soap.sforce.com/2006/04/metadata">
+    <autoResponseRule>
+        <fullName>OOO Dealer</fullName>
+        <active>false</active>
+        <ruleEntry>
+            <criteriaItems>
+                <field>Case.RecordTypeId</field>
+                <operation>equals</operation>
+                <value>Dealer</value>
+            </criteriaItems>
+            <notifyCcRecipients>true</notifyCcRecipients>
+            <replyToEmail>sales@yeti.com</replyToEmail>
+            <senderEmail>aneesh.kommidi@yeti.com</senderEmail>
+            <senderName>OOO Dealer</senderName>
+            <template>unfiled$public/OOO_Email_Template</template>
+        </ruleEntry>
+    </autoResponseRule>
+</AutoResponseRules>

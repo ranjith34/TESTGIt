@@ -1,0 +1,4 @@
+<apex:page standardController="Account" showHeader="false" applyHtmlTag="false">
+	<c:AnalyticsRemoteSiteSetup />
+	<c:ZendeskList for="account" />
+</apex:page>

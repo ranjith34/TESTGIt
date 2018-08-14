@@ -1,0 +1,339 @@
+<apex:page controller="Zendesk.ZendeskTicketController" docType="html-5.0" tabstyle="Zendesk__Zendesk_Ticket__c">
+
+<apex:form id="all" >
+	<style>
+		.editPage .pbBody input[type="text"] {
+			min-width: 200px;
+			max-width: 400px;
+		}
+
+		.editPage .pbBody textarea {
+			min-width: 200px;
+			max-width: 400px;
+		}
+
+		.editPage .pbBody select {
+			min-width: 208px;
+			max-width: 408px;
+		}
+
+		.requiredCustomTicketField{
+			background-color: #c00;
+		    width: 3px;
+		    position: absolute;
+		    top: -1px;
+		    left: -4px;
+		    height: 100%;
+		}
+	</style>
+    <apex:actionFunction name="callout" action="{!Initialize}" rerender="all"/>
+    <apex:outputpanel rendered="{!NOT Initialized}">
+        <script>
+        	Visualforce.remoting.timeout = 120000; // Set timeout at page level
+        	//flag to prevent deleting of uploads when page is refreshed
+			//as a result of submitting a form
+			var isSubmitForm = false;
+
+        	function addOnLoad(func) 
+			{ 	
+			    var prev = window.onload; 
+			    if (typeof window.onload != 'function') 
+			    { 
+			        window.onload = func; 
+			    } 
+			    else
+			    {
+			        window.onload = function()  
+			        { 
+			            if (prev) 
+			            { 
+			                prev(); 
+			            } 
+			            func(); 
+			        } 
+				} 
+			}
+
+			addOnLoad(function()  
+			{ 
+				callout();
+			});
+        </script>
+        
+
+        <div align="center">
+            <br/><br/><br/><br/><br/><br/>
+        	<apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}" />
+        </div>
+    </apex:outputpanel>
+    <script>
+		function dateFormat(id){
+			var inputField = document.getElementById(id).value;
+			var tempString = '';
+			if (inputField == document.getElementById(id).defaultValue){
+				inputField = new Date(document.getElementById(id).value);
+				inputField.setDate(inputField.getDate() + 1);
+			} else {
+				inputField = new Date(document.getElementById(id).value);
+			}
+			tempString = (inputField.getMonth() + 1) + '/' + inputField.getDate() + '/' + inputField.getFullYear();			
+
+			if(tempString == 'NaN/NaN/NaN'){
+				return document.getElementById(id).value = '';
+			} else {
+				return document.getElementById(id).value = tempString;	
+			}
+		}
+	</script>
+    <apex:outputpanel rendered="{!Initialized}">  
+    
+	  <apex:sectionHeader title="Zendesk Support ticket" subtitle="Ticket #{!ticket.internalId}" rendered="{!isEdit && ticket.subject == null}"/>
+	  <apex:sectionHeader title="Zendesk Support ticket" subtitle="#{!ticket.internalId} '{!ticket.subject}'" rendered="{!isEdit && ticket.subject != null}"/>
+	  <apex:sectionHeader title="Zendesk Support ticket" subtitle="New ticket" rendered="{!isNew}"/>
+	  
+      <apex:outputpanel id="pageMessages">
+        <apex:pageMessages />
+      </apex:outputpanel>
+      	
+	  <apex:outputText rendered="{!!ownCredentials}">
+	    <p>In order to edit or create new Zendesk Support Tickets, you need to have your own Zendesk Support account.</p>
+	    <p>Please&nbsp;<apex:outputLink value="{!URLFOR($Page.Zendesk__ZendeskSettings)}?retURL={!URLENCODE('/apex/ZendeskTicketEdit')}">configure your own credentials</apex:outputLink>.</p>
+	  </apex:outputText>
+	
+	  <apex:outputText rendered="{!(!ticket.isEditable && !isNew && !error)}">
+	    <p>You cannot edit a closed ticket.</p>
+	  </apex:outputText>
+	
+	  <apex:outputpanel rendered="{!ownCredentials}">
+		  <apex:pageBlock title="Edit Zendesk Support Ticket" mode="edit" rendered="{!NOT(error)}">
+		
+		    <apex:pageBlockButtons location="top">
+		      <apex:commandButton action="{!save}" onclick="isSubmitForm = true; dateFormat()" value="Save" />&nbsp;&nbsp;&nbsp;
+		      <apex:selectList value="{!macroId}" size="1" >
+		        <apex:selectOptions value="{!macroOptions}" />
+		        <apex:actionSupport event="onchange" action="{!applyMacro}" rerender="pageMessages,requesterFields,subjectFields,ticketFields,commentFields,customFields" status="DottedBarStatus"/>
+		      </apex:selectList>
+              <apex:commandButton value="Cancel" action="{!GoBack}" />
+              <apex:actionStatus id="DottedBarStatus" >
+                  <apex:facet name="start"><apex:image url="{!URLFOR($Resource.Zendesk__ZendeskStaticResource, 'images/dotted_bar.gif')}" /></apex:facet>
+              </apex:actionStatus>
+		    </apex:pageBlockButtons>
+
+		    <!-- changed size > 0 to size != null -->
+		    <apex:pageBlockSection columns="2" title="Ticket fields" id="requesterFields">
+		      <apex:pageBlockSectionItem rendered="{!isEdit || (isNew && requesters.size != null)}">
+		        <apex:outputLabel value="Requester" />
+		        <apex:outputPanel >
+		          <apex:outputPanel styleClass="requiredInput" layout="block" rendered="{!isNew}">  
+		            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+		            <apex:selectList value="{!ticket.newRequester}" size="1">
+		              <apex:selectOptions value="{!requesters}"/>
+		              <apex:actionSupport event="onchange" rerender="newRequester" status="DottedBarStatus"/>
+		            </apex:selectList>
+		          </apex:outputPanel>
+		          <!--<apex:outputText rendered="{!isEdit}" value="{!ticket.requester.name}" />-->
+		          <apex:outputText rendered="{!isEdit}" value="{!ticket.ReqName}" />
+		        </apex:outputPanel>
+		      </apex:pageBlockSectionItem>
+		
+		
+		      <apex:pageBlockSectionItem rendered="{!ticket.collaborators != null}">
+		        <apex:outputLabel value="CC" rendered="{!isEdit}" />
+		        <apex:outputText value="{!ticket.collaborators}" rendered="{!isEdit}" />
+		      </apex:pageBlockSectionItem>
+		    </apex:pageBlockSection>
+		    
+		      <apex:pageBlockSection columns="2" id="newRequester">
+		        <apex:pageBlockSectionItem rendered="{!ticket.newRequester == 'new'}">
+		          <apex:outputLabel >Requester Name</apex:outputLabel>
+		          <apex:outputPanel styleClass="requiredInput" layout="block" rendered="{!isNew}">  
+		            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+		            <apex:inputText value="{!ticket.newRequesterName}" style="border:1px solid #A8A8A8;padding:3px"/>
+		          </apex:outputPanel>
+		        </apex:pageBlockSectionItem>
+		        <apex:pageBlockSectionItem rendered="{!ticket.newRequester == 'new'}">
+		          <apex:outputLabel >Requester Email</apex:outputLabel>
+		          <apex:outputPanel styleClass="requiredInput" layout="block" rendered="{!isNew}">  
+		            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+		            <apex:inputText value="{!ticket.newRequesterEmail}" style="border:1px solid #A8A8A8;padding:3px"/>
+		          </apex:outputPanel>
+		        </apex:pageBlockSectionItem>
+		      </apex:pageBlockSection>
+		
+		
+		    <apex:pageBlockSection columns="1" id="subjectFields" rendered="{!hasSubjectField}">
+		      <apex:pageBlockSectionItem >
+		        <apex:outputLabel >Subject<apex:outputText rendered="{!subjectRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:inputText value="{!ticket.subject}" disabled="{!!ticket.canUpdate}" style="width:100%;border:1px solid #A8A8A8;padding:3px"/>
+		      </apex:pageBlockSectionItem>
+		    </apex:pageBlockSection>
+		
+		    <apex:pageBlockSection columns="2" id="ticketFields">
+		      <apex:pageBlockSectionItem >
+		        <apex:outputLabel >Status<apex:outputText rendered="{!statusRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:selectList value="{!ticket.status}" disabled="{!!ticket.canUpdate}" size="1" styleClass="standard">
+		          <apex:selectOption itemValue="new" itemLabel="New"/>
+		          <apex:selectOption itemValue="open" itemLabel="Open"/>
+		          <apex:selectOption itemValue="pending" itemLabel="Pending"/>
+		          <apex:selectOption itemValue="hold" itemLabel="On-hold"/>
+		          <apex:selectOption itemValue="solved" itemLabel="Solved"/>
+		        </apex:selectList>
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSectionItem >
+		        <apex:outputLabel rendered="{!hasPriorityField}">Priority<apex:outputText rendered="{!priorityRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:selectList rendered="{!hasPriorityField}" disabled="{!!ticket.canUpdate}" value="{!ticket.priority}" size="1" id="ticketPriority" styleClass="standard">
+		        	<apex:selectOptions value="{!PriorityOptions}"/>
+		        </apex:selectList>
+		      </apex:pageBlockSectionItem>
+		      
+				<apex:pageBlockSectionItem rendered="{!Brands.size > 0}">
+					<apex:outputLabel >Brand</apex:outputLabel>
+					<apex:selectList value="{!ticket.brand_id}" size="1">
+						<apex:selectOptions value="{!Brands}" />
+					</apex:selectList>	
+	      	  	</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem rendered="{!Brands.size == 0}">
+					<!--  No brands or is not enabled -->
+	      	  	</apex:pageBlockSectionItem>
+
+			  <apex:pageBlockSectionItem />
+					    
+		      <apex:pageBlockSectionItem >
+		        <apex:outputLabel rendered="{!hasTicketTypeField}">Type<apex:outputText rendered="{!ticketTypeRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:selectList rendered="{!hasTicketTypeField}" disabled="{!!ticket.canUpdate}" value="{!ticket.ticketType}" size="1" styleClass="standard">
+		          <apex:selectOption itemValue="" itemLabel=""/>
+		          <apex:selectOption itemValue="question" itemLabel="question"/>
+		          <apex:selectOption itemValue="incident" itemLabel="incident"/>
+		          <apex:selectOption itemValue="problem" itemLabel="problem"/>
+		          <apex:selectOption itemValue="task" itemLabel="task"/>
+		          <apex:actionSupport event="onchange" rerender="taskDueDateLabel,taskDueDateField" status="DottedBarStatus"/>
+		         </apex:selectList>
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSectionItem rendered="{!ticket.ticketType == 'task'}" >
+		        <apex:outputLabel value="Due date" id="taskDueDateLabel" />
+                <apex:outputPanel id="taskDueDateField" >
+                <!-- change this to same? -->
+                  <apex:outputField rendered="{!!ticket.canUpdate}" value="{!tempContact.birthDate}" style="border:1px solid #A8A8A8;padding:3px" />
+                  <apex:inputField rendered="{!ticket.canUpdate}" value="{!tempContact.birthDate}" />
+                </apex:outputPanel>
+		      </apex:pageBlockSectionItem>
+
+              <apex:pageBlockSectionItem rendered="{!ticket.ticketType != 'task'}" />
+		
+		      <apex:pageBlockSectionItem rendered="{!multipleGroups}">      
+		        <apex:outputLabel >Group<apex:outputText rendered="{!groupRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:selectList value="{!ticket.groupId}" disabled="{!!ticket.canUpdate}" size="1">
+		          <apex:selectOptions value="{!groupOptions}"/>
+		          <apex:actionSupport event="onchange" rerender="groupAssignees" status="DottedBarStatus"/>
+		        </apex:selectList>
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSectionItem rendered="{!multipleAssignees}">
+		        <apex:outputLabel >Assignee<apex:outputText rendered="{!assigneeRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:selectList value="{!ticket.assigneeId}" disabled="{!!ticket.canUpdate}" size="1" id="groupAssignees">
+		          <apex:selectOptions value="{!assigneeOptions}"/>
+		        </apex:selectList>
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSection columns="1" id="subjectFields" >
+		      
+		      
+		    </apex:pageBlockSection>
+		    </apex:pageBlockSection>
+		    
+		    <apex:pageBlockSection columns="1" id="commentFields">
+		      <apex:pageBlockSectionItem rendered="{!isNew}">
+		        <apex:outputLabel >Description<apex:outputText rendered="{!descriptionRequired}">*</apex:outputText></apex:outputLabel>
+		        <apex:outputPanel styleClass="requiredInput" layout="block">  
+		          <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+		          <apex:inputTextarea value="{!ticket.description}" disabled="{!!ticket.canUpdate}" rows="6" style="width:100%;border:1px solid #A8A8A8;padding:3px" />
+		        </apex:outputPanel>
+		      </apex:pageBlockSectionItem>
+		    
+		      <apex:pageBlockSectionItem rendered="{!(isEdit && ticket.canComment)}">
+		        <apex:outputLabel value="Comment" />
+		        <apex:inputTextarea value="{!ticket.comment}" rows="6" style="width:100%;border:1px solid #A8A8A8;padding:3px" />
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSectionItem rendered="{!(isEdit && ticket.canComment && ticket.canPublicComment)}">
+		        <apex:outputLabel value="Public comment" />
+		        <apex:inputCheckbox value="{!ticket.publicComment}" />
+		      </apex:pageBlockSectionItem>
+		      
+		      <apex:pageBlockSectionItem rendered="{!(isEdit && ticket.canComment && !ticket.canPublicComment)}">
+		        <apex:outputLabel value="Public comment" />
+		        <apex:outputText >This comment will not be seen by the requester</apex:outputText>
+		      </apex:pageBlockSectionItem>
+		
+		      <apex:pageBlockSectionItem >
+		        <apex:outputLabel value="Tags" />
+                <apex:inputText disabled="{!!ticket.canEditTags}"  value="{!ticket.tags}" style="border:1px solid #A8A8A8;padding:3px" />
+		      </apex:pageBlockSectionItem>
+		    </apex:pageBlockSection>
+			<!--  For attachments start -->
+			<apex:pageBlockSection columns="1" >
+				<apex:pageBlockSectionItem labelStyle="padding-top: 17px;">
+					<apex:outputLabel value="" />
+					<apex:outputPanel layout="block" styleClass="zendeskAttachment">
+						<span id="attachmentButton" onclick="return ZendeskTicketAttachmentModule.selectFile('{!$Component.tokenContainer}');">Attach file</span>
+						<div id="uploadNotes">
+							Max file size: 5MB
+						</div>
+						<div id="uploadFileDisplay" style="text-align: left;"></div>
+						<apex:inputHidden value="{!UploadTokens}" id="tokenContainer" />
+					</apex:outputPanel>
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+			<!--  For attachments end -->
+		    <div class="pbSubsection">
+		      <apex:dataTable value="{!ticket.customFields}" var="field" styleClass="detailList" columnClasses="labelCol, data2Col" id="customFields">
+		        <apex:column rendered="{!field.fieldType != 'partialcreditcard'}">
+		          <apex:outputText rendered="{!field.options.size != 1000}">{!field.title}</apex:outputText>
+		        </apex:column>
+		        <apex:column rendered="{!field.fieldType != 'partialcreditcard'}">
+		        <div style="position: relative;">
+		          <apex:outputText rendered="{!field.isRequired}"><div class="requiredCustomTicketField"></div></apex:outputText>
+		          <apex:selectList value="{!field.value}" disabled="{!!ticket.canUpdate}" size="1" rendered="{!AND(field.fieldType == 'tagger',field.options.size != 1000)}">
+		            <apex:selectOptions value="{!field.options}"/>
+		          </apex:selectList>
+
+		          <apex:inputText value="{!field.value}" rendered="{!field.fieldType == 'date'}" disabled="{!!ticket.canUpdate}" id="dateField" onfocus="DatePicker.pickDate(false, this, false); dateFormat(id);" style="border:1px solid #A8A8A8; padding:3px" />
+
+		          <apex:inputText value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'text'}" style="border:1px solid #A8A8A8;padding:3px"/>
+		          <apex:inputTextarea value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'textarea'}" style="border:1px solid #A8A8A8"/>
+		          <apex:inputText value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'integer'}" style="border:1px solid #A8A8A8;padding:3px"/>
+		          <apex:inputText value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'decimal'}" style="border:1px solid #A8A8A8;padding:3px"/>
+		          <apex:inputCheckbox value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'checkbox'}"/>
+		          <apex:inputText value="{!field.value}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'regexp'}" style="border:1px solid #A8A8A8;padding:3px"/>
+							<!-- Multi select picklist support -->
+							<apex:selectList value="{!field.multiselectValue}" disabled="{!!ticket.canUpdate}" rendered="{!field.fieldType == 'multiselect'}" multiselect="true" id="multiselectField">
+								<apex:selectOptions value="{!field.options}"/>
+							</apex:selectList>
+						</div>
+		        </apex:column>
+		      </apex:dataTable>
+		    </div>
+		  </apex:pageBlock>
+	  </apex:outputpanel>
+	  
+	  <c:ZendeskTicketComments ticket="{!ticket}" rendered="{!isEdit && NOT(error)}"/>
+    </apex:outputpanel>
+</apex:form>
+<!--  For attachments start -->
+<apex:stylesheet value="{!$Resource.Zendesk__ZendeskStyleSheet}"/>
+<script src="../../soap/ajax/37.0/connection.js" type="text/javascript"></script>
+<script src="../../soap/ajax/37.0/apex.js" type="text/javascript"></script>
+<script type="text/javascript"> sforce.connection.sessionId='{!GETSESSIONID()}'; </script>
+<apex:includeScript value="{!$Resource.Zendesk__ZendeskTicketAttachmentJS}"/>
+<script type="text/javascript">
+	ZendeskTicketAttachmentModule.init(
+		"{!$RemoteAction.ZendeskTicketController.deleteUploadFromZendesk}",
+		"{!$RemoteAction.ZendeskTicketController.deleteUploadedAttachments}",
+		"{!URLFOR($Resource.Zendesk__ZendeskStaticResource,'images/dotted_bar.gif')}",
+		"uploadFileDisplay"
+	);
+</script>
+<!--  For attachments end -->
+</apex:page>

@@ -1,0 +1,16 @@
+.THIS {
+    
+}
+
+.THIS .table-col{
+    max-width: 300px;
+}
+
+.THIS .buttonGroup{
+    text-align: right;
+    padding: 13px;
+}
+
+.THIS .selectCount{
+    margin-bottom:20px;
+}

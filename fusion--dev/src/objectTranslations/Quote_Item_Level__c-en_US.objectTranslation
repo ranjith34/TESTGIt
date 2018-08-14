@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObjectTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <caseValues>
+        <plural>false</plural>
+        <value>Quote Item</value>
+    </caseValues>
+    <caseValues>
+        <plural>true</plural>
+        <value>Quote Items</value>
+    </caseValues>
+    <fields>
+        <label><!-- Actual Amount --></label>
+        <name>Actual_Amount__c</name>
+    </fields>
+    <fields>
+        <label><!-- CategorySection --></label>
+        <name>CategorySection__c</name>
+        <picklistValues>
+            <masterLabel>Custom</masterLabel>
+            <translation><!-- Custom --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>CustomHardCoolers</masterLabel>
+            <translation><!-- CustomHardCoolers --></translation>
+        </picklistValues>
+        <picklistValues>
+            <masterLabel>Stock</masterLabel>
+            <translation><!-- Stock --></translation>
+        </picklistValues>
+    </fields>
+    <fields>
+        <label><!-- Category --></label>
+        <name>Category__c</name>
+    </fields>
+    <fields>
+        <label><!-- Delivery Date --></label>
+        <name>Delivery_Date__c</name>
+    </fields>
+    <fields>
+        <label><!-- Delivery Instructions --></label>
+        <name>Delivery_Instructions__c</name>
+    </fields>
+    <fields>
+        <label><!-- Discount Item --></label>
+        <name>Discount_Item__c</name>
+    </fields>
+    <fields>
+        <label><!-- Editable --></label>
+        <name>Editable__c</name>
+    </fields>
+    <fields>
+        <label><!-- Item Total Amount --></label>
+        <name>Item__c</name>
+    </fields>
+    <fields>
+        <label><!-- Plant ID --></label>
+        <name>Plant_ID__c</name>
+    </fields>
+    <fields>
+        <label><!-- ProductUrl --></label>
+        <name>ProductUrl__c</name>
+    </fields>
+    <fields>
+        <label><!-- Product Code --></label>
+        <name>Product_Code__c</name>
+    </fields>
+    <fields>
+        <label><!-- Product Description --></label>
+        <name>Product_Description__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quantity --></label>
+        <name>Quantity__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Header --></label>
+        <name>Quote_Header__c</name>
+        <relationshipLabel><!-- Quote Items --></relationshipLabel>
+    </fields>
+    <fields>
+        <label><!-- Quote Item Higher Level --></label>
+        <name>Quote_Item_Higher_Level__c</name>
+    </fields>
+    <fields>
+        <label><!-- Quote Item Number --></label>
+        <name>Quote_Item_Number__c</name>
+    </fields>
+    <fields>
+        <label><!-- Short Text --></label>
+        <name>Short_Text__c</name>
+    </fields>
+    <fields>
+        <label><!-- Storage Location --></label>
+        <name>Storage_Location__c</name>
+    </fields>
+    <fields>
+        <label><!-- Tax --></label>
+        <name>Tax__c</name>
+    </fields>
+    <fields>
+        <label><!-- Unit Rate --></label>
+        <name>Unit_Rate__c</name>
+    </fields>
+    <startsWith>Consonant</startsWith>
+</CustomObjectTranslation>

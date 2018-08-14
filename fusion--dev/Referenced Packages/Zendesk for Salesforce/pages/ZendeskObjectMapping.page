@@ -1,0 +1,47 @@
+<apex:page controller="Zendesk.ZendeskObjectMapping" tabstyle="Zendesk__tab">
+    <apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+    <apex:sectionHeader title="Zendesk Support" subtitle="User and Organization Sync Settings"/>
+    <apex:form >
+
+        <apex:actionFunction name="refreshMapping" action="{!LoadMappings}" />
+
+        <apex:pageMessages />
+
+        <apex:PageBlock mode="maindetail">
+
+           <apex:pageBlockButtons location="top">
+               <input type="button" onclick="navigateToURL('{!$Page.ZendeskOrgTab}');" value="Back to Global Settings" class="btn"/>
+           </apex:pageBlockButtons>
+
+           <apex:pageBlockSection title="Select a pairing to modify its sync settings" collapsible="false" columns="1">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Sync Pairing" />
+                    <apex:selectList value="{!EntitySelection}" size="1" onchange="refreshMapping();">
+                        <apex:selectOption itemValue="account" itemLabel="Accounts - Organizations" />
+                        <apex:selectOption itemValue="contact" itemLabel="Contacts - Users" />
+                        <apex:selectOption itemValue="lead" itemLabel="Leads - Users" />
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+                <!--
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Choose Settings" />
+                    <apex:selectList value="{!DisplaySelection}" size="1" onchange="refreshMapping();">
+                        <apex:selectOption itemValue="general" itemLabel="General Options" />
+                        <apex:selectOption itemValue="filters" itemLabel="Filters" />
+                        <apex:selectOption itemValue="tagMapping" itemLabel="Tag Mapping" />
+                        <apex:selectOption itemValue="customMapping" itemLabel="Custom Mapping" />
+                    </apex:selectList>
+                </apex:pageBLockSectionItem>
+                -->
+            </apex:pageBlockSection>
+
+        </apex:PageBlock>
+
+        <!-- Use if necessary to break down page further (view state)
+        <c:ZendeskObjectMapping EntityName="{!EntitySelection}" DisplaySelection="{!DisplaySelection}"/>
+        -->
+
+		<c:ZendeskObjectMapping EntityName="{!EntitySelection}" />
+        <c:BulkSyncAutoMatchSetting />
+    </apex:form>
+</apex:page>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <available>true</available>
+    <encodingKey>ISO-8859-1</encodingKey>
+    <letterhead>Support_Team</letterhead>
+    <name>New Product Date Request</name>
+    <style>freeForm</style>
+    <subject>RE: {!Case.Subject}.</subject>
+    <textOnly>Hello,
+
+Thanks for reaching out to us. We are super excited about our up-coming product launch. I can’t tell you what day to mark your calendar yet but we want you to be the first to know. Stay tuned on updates by entering your email address on the product page to get notified.  Word can spread fast so act quickly once you get our in-stock email.
+
+
+Heads up- if you missed this round, no worries. Just sign up again and we will let you know when we have reloaded.
+
+Cheers,
+
+
+{!User.CommunityNickname}
+
+The YETI Outfitters
+
+512.394.9384
+
+customerservice@yeti.com
+
+yeti.com</textOnly>
+    <type>html</type>
+</EmailTemplate>

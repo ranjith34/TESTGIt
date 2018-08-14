@@ -1,0 +1,52 @@
+<!--  Zendesk Ticket Form Selection -->
+<apex:page controller="Zendesk.ZendeskTicketFormSelectionController" title="Select Zendesk Ticket Form" tabStyle="Zendesk__Zendesk_Ticket__c" action="{!checkIfMultipleTicketForms}">
+	<c:RedirectToTermsAndConditions />
+    <c:AnalyticsRemoteSiteSetup />
+	<style>
+		.labelCol {
+			display: inline-block;
+			min-width: 100px;
+		}
+	</style>
+	<script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+	<apex:form >
+	<apex:sectionHeader title="New Zendesk Ticket" subtitle="Select Zendesk Ticket Form" description="Select a ticket form for the new ticket. Check the 'Set as default' checkbox to make the selected the pre-selected value during next ticket creation."/>
+		<apex:pageBlock title="Available ticket forms">
+			<apex:pageBlockSection columns="1">
+				<apex:pageBlockSectionItem >
+					<apex:outputPanel >
+						<apex:outputLabel styleClass="labelCol" value="Ticket form" for="formSelection"/>
+						<apex:selectList id="formSelection" value="{!selected}" size="1" required="true" onchange="checkIfDefault();">
+							<apex:selectOptions value="{!ticketForms}"/>
+			        	</apex:selectList>
+					</apex:outputPanel>
+					
+				</apex:pageBlockSectionItem>
+				<apex:pageBlockSectionItem >
+					<apex:outputPanel id="make-default-container">
+						<apex:outputLabel styleClass="labelCol" value="Set as default" for="default"/>
+						<apex:inputCheckBox id="default" value="{!makeDefault}" />
+					</apex:outputPanel>
+					
+				</apex:pageBlockSectionItem>
+			</apex:pageBlockSection>
+
+			<apex:pageBlockButtons location="bottom">
+				<apex:commandButton value="Continue" action="{!continueCreation}"></apex:commandButton>
+				<apex:commandButton value="Cancel" action="{!cancel}"></apex:commandButton>
+			</apex:pageBlockButtons>
+		</apex:pageBlock>
+	</apex:form>
+	<script>
+		/** Just checks/unchecks the Set as default checkbox if the selected item is already the default type form **/
+		function checkIfDefault(){
+			var defaultId = "{! defaultFormId }";
+			var selected = $(":input[id$='formSelection']").val();
+			if(defaultId == selected){
+				$(":input[id$='default']").attr('checked', '');
+			}else{
+				$(":input[id$='default']").removeAttr('checked');
+			}
+		}
+	</script>
+</apex:page>

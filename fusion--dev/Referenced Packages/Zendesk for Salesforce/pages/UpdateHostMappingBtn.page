@@ -1,0 +1,2 @@
+<apex:page standardcontroller="Zendesk__Zendesk_Domain__c" extensions="Zendesk.UpdateHostMappingBtnCtrl" action="{! updateDomain }">
+</apex:page>

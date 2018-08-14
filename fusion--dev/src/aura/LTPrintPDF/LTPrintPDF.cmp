@@ -1,0 +1,5 @@
+<aura:component implements="force:lightningQuickAction" >
+    <aura:attribute name="recordId" type="Id"/>
+	<aura:handler name="init" action="{!c.onloadpage}" value="{!this}"/>
+    <center>Loading ....</center>
+</aura:component>

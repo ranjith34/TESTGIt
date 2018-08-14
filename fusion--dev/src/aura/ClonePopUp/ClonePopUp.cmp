@@ -1,0 +1,83 @@
+<aura:component controller="OpportunityDetailsController" access="global" >
+    <aura:attribute name="AccountId" type="Id" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    
+    <!-- table records are stored on the data attribute -->
+    <aura:attribute name="OppData" type="List" access="global" />
+    <!-- init method loads the data attribute values -->
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}"/>
+    
+    <div >
+        <div align="center"><lightning:button variant="brand" label="Next" title="Brand action" /></div>
+        <br/>
+       <div> 
+       <table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal slds-p-horizontal_small" role="grid">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th class="slds-cell-shrink" scope="col">  
+                         <ui:inputRadio aura:id="r0ID" value="false"   change="{!c.onCheckboxChange}"/>
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                        <div class="slds-truncate" title="None">None</div>
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                        
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                       
+                    </th>
+                    
+                </tr>
+            </thead>
+           </table>
+           <br/><br/>
+        
+        </div>
+        <div><table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal slds-p-horizontal_small" role="grid">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th class="slds-cell-shrink" scope="col">  
+                        <div class="slds-truncate" title="Name">Select</div>
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                        <div class="slds-truncate" title="Name">Name</div>
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                        <div class="slds-truncate" title="City">Stage</div>
+                    </th>
+                    <th class="slds-cell-shrink" scope="col">
+                        <div class="slds-truncate" title="Country">Created Date</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Iterates the collection of records stored in the data attribute-->
+                <aura:iteration items="{!v.OppData}" var="opp">
+                    <tr class="slds-hint-parent">
+                        <td data-label="" scope="row">  
+                            <!-- checkbox selection invokes the onCheckboxChange controller method-->
+                            <ui:inputRadio aura:id="r0ID" value="false" text="{!opp.id}" change="{!c.onCheckboxChange}"/>                  
+                        </td>
+                        <td data-label="Name">  
+                            <div class="slds-truncate" title="{!opp.name}">{!opp.name}</div>
+                        </td>
+                        <td data-label="City">  
+                            <div class="slds-truncate" title="{!opp.city}">{!opp.StageName}</div>
+                        </td>
+                        <td data-label="Country">  
+                            <div class="slds-truncate" title="{!opp.country}">{!opp.CreatedDate}</div>
+                        </td>
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+          </div>  
+        <br/>
+        <div> <div align="center"><lightning:button variant="brand" label="Next" title="Brand action" /></div></div>
+    </div>
+    
+    
+    
+    
+</aura:component>

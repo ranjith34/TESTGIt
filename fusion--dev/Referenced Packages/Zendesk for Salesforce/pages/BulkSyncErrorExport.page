@@ -1,0 +1,8 @@
+<apex:page controller="Zendesk.BulkSyncErrorExportCtrl" action="{!exportToCSV}" readOnly="true" contentType="application/vnd.ms-excel#{!fileName}.csv">General Error, "{!generalError}"
+<apex:outputPanel rendered="{!bulkSyncErrors.size > 0}">
+{!header}
+</apex:outputPanel>
+<apex:repeat value="{!bulkSyncErrors}" var="err">
+{!err.name}, {!err.syncDate}, "{!err.error}"
+</apex:repeat>
+</apex:page>

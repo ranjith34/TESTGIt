@@ -1,0 +1,676 @@
+<apex:page showHeader="true" sidebar="false" controller="Zendesk.BulkSyncManualMatchCtrl">
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery/1.12.3/jquery.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/1.10.12/js/jquery.dataTables.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/buttons/1.2.2/js/dataTables.buttons.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/buttons/1.2.2/js/buttons.colVis.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/fixedcolumns/3.2.2/js/dataTables.fixedColumns.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__jquery, 'resource/datatables/select/1.2.0/js/dataTables.select.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.Zendesk__ZendeskStaticResources2, '/zendesk_static_resources/js/bulk_sync_commons.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__jquery, 'resource/jquery-ui/1.12.1/jquery-ui.min.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.Zendesk__slds, 'assets/styles/salesforce-lightning-design-system.min.css')}" />
+
+	<style>
+		.ui-autocomplete { 
+			height: 200px;
+			overflow-y: scroll; 
+			overflow-x: hidden;
+		}
+		th, td { 
+			white-space: nowrap;
+		}
+		div.dataTables_wrapper {
+	        width: 100%;
+	        margin: 0 auto;
+	    }
+	    .main-content {
+			padding-top: 20px;
+			padding-left: 10px;
+		}
+		.header-text {
+			width: 400px;
+			height: 22px;
+			font-size: 18px;
+			font-weight: 300;
+			font-style: normal;
+			font-stretch: normal;
+			color: #16325c;
+		}
+		.description-text {
+			font-size: 13px;
+			font-weight: normal;
+			line-height: 1.38;
+			color: #333333;
+			margin-top: 10px;
+			margin-bottom: 20px;
+		}
+		.slds-table td {
+			padding: .35em;
+		}
+		.slds-table thead, .slds-table tbody {
+			border-bottom: 1px solid #000;
+		}
+		.slds-table tbody tr {
+			box-shadow: 0 1px 0 0 #d8dde6, 0 -1px 0 0 #d8dde6;
+		}
+		.sorting, .sorting_asc, .sorting_desc,.sorting_asc_disabled, .sorting_desc_disabled{
+			background-repeat: no-repeat;
+			background-position: center right;
+		}
+		.sorting {
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_both.png')}")
+		}
+		.sorting_asc{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_asc.png')}")
+		}
+		.sorting_desc{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_desc.png')}")
+		}
+		.sorting_asc_disabled{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_asc_disabled.png')}")
+		}
+		.sorting_desc_disabled{
+			background-image:url("{!URLFOR($Resource.jquery, 'resource/datatables/1.10.12/images/sort_desc_disabled.png')}")
+		}
+		.dataTables_paginate {
+			text-align: right;
+		}
+		input {
+			background-color:#fff;
+			color:#16325c;
+			border:1px solid #d8dde6;
+			border-radius:.25rem;
+			transition:border .1s linear,background-color .1s linear;
+			display:inline-block;
+			padding:0 1rem 0 .75rem;
+			line-height:1.5rem;
+			min-height:calc(1.5rem + (1px * 2));
+			margin: 0em .35em;
+		}
+		input:active, input:focus{
+			outline:0;
+			border-color:#1589ee;
+			background-color:#fff;
+			box-shadow:0 0 3px #0070D2;
+		}
+		.footer {
+			margin-top: 5%;
+			padding-left: 10px;
+		}
+		.footer-align-right {
+			text-align: right;
+		}
+		.dt-button-collection {
+			position: absolute;
+			margin-top: 3px;
+			padding: 8px 0px;
+			border: 1px solid #ccc;
+			border: 1px solid rgba(0,0,0,0.4);
+			background-color: white;overflow:hidden;
+			z-index: 2002;
+			border-radius: 5px;
+			box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+			z-index: 2002;
+			/*-webkit-column-gap: 8px;
+			-moz-column-gap: 8px;
+			-ms-column-gap: 8px;
+			-o-column-gap: 8px;
+			column-gap: 8px;*/
+		}
+		.dt-button-collection .dt-button {
+			display: block;
+			line-height: 30px;
+			padding: 0px 10px;
+		}
+
+		.dt-button-collection .dt-button:hover {
+			background-color: #f4f6f9;
+			text-decoration: none;
+		}
+
+		.dt-button.active {
+			color: #53688e;
+		}
+		.dt-button.active:before {
+			display: inline-block;
+			content: ' ';
+			background-image: url("{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#check')}");
+			background-size: 10px 10px;
+			height: 12px;
+			width: 12px;
+			fill: #061c3f;
+		}
+		div.dt-button-background {
+			position: fixed;
+			top: 0;
+			left: 0;.
+			width: 100%;
+			height: 100%;
+			z-index: 2001;
+		}
+		.dropdown {
+			width: 106px;
+			height: 30px;
+			margin: 1em .25em;
+			border-radius: 4px;
+			background-color: #ffffff;
+			border: solid 1px #d8dde6;
+		}
+		.modalText {
+			font-family: .SF NS Text;
+			font-size: 13px;
+			font-weight: normal;
+			font-style: normal;
+			font-stretch: normal;
+			line-height: 1.46;
+			text-align: left;
+			color: #16325c;
+		}
+		.marginBottom15 {
+			margin-bottom: 15px;
+		}
+		.down {
+		  width: 10px;
+		  height: 10px;
+		  fill: #061c3f;
+		}
+		.dt-buttons, .dataTables_length, .dataTables_filter, .right {
+			display: inline-block;
+		}
+		.dt-buttons {
+			vertical-align: center;
+		}
+		.right {
+			float: right;
+			clear: both;
+		}
+		.top {
+			overflow: hidden;
+		}
+		.dataTables_filter {
+			margin-left: 1em;
+		}
+		.dataTables_filter input {
+			height: 1.85rem;
+			width: 250px;
+		}
+		.paginate_button {
+			margin: .5em;
+		}
+		.paginate_button.disabled {
+			color: #53688e;
+			text-decoration: none;
+		}
+
+		.dataTables_info {
+			margin-top: 30px;
+		}
+
+		.spinner-text {
+			transform: translate(135%, -10%) rotate(270deg);
+		}
+	</style>
+
+	<script>
+		(function(j$) {
+			Visualforce.remoting.timeout = 120000; //Set remoting time out to 120s to allow remoteAction to return
+			Visualforce.remoting.buffer = false;
+			j$.fn.dataTableExt.sErrMode = 'none'; //Datatalbes will not shown errors as pop up to user
+			var zdobject = '{!JSENCODE($CurrentPage.parameters.zdobject)}';
+			var sfdcobject = '{!JSENCODE($CurrentPage.parameters.sfdcobject)}';
+			var zdobjectCap = capitalize(zdobject);
+			var sfdcobjectCap = capitalize(sfdcobject);
+			var JOBID = '{!JSENCODE($CurrentPage.parameters.jobid)}';
+			var createRecordIn = getCreateRecordIn();;
+			var offset = '';
+			var bulkResult = [];
+			var col = [];
+			var PREFIX = "";
+
+			j$(document).ready(function() {
+				navigationBar();
+				loadPrefix();
+				j$("span#confirmation-text").text("Any unmatched " + zdobjectCap + "s will be created as " + sfdcobjectCap + " in Salesforce.");
+			});
+			function loadPrefix () {
+				Visualforce.remoting.Manager.invokeAction("{!$RemoteAction.BulkSyncManualMatchCtrl.getPrefix}", function(result, event) {
+					if (event.status) {
+						PREFIX = result;
+						loadCol();
+					}
+				});
+			}
+			function getCreateRecordIn () {
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.getCreateRecordIn}', function(result, event){
+					if (event.status) {
+						createRecordIn = result;
+						j$("div#description-text").text("Below is a list of Zendesk Support " + zdobjectCap + "s that cannot be automatically matched with any Salesforce " + sfdcobjectCap + " using the matching criteria.");
+						var descriptionText2 = "Please use the table to manually match " + zdobjectCap + "s and " + sfdcobjectCap + "s. ";
+						if (createRecordIn !== null && createRecordIn !== "" && (createRecordIn === "Salesforce only" || createRecordIn === "Both")) {
+							descriptionText2 += "Any unmatched " + zdobjectCap + "s will be created as new " + sfdcobjectCap + "s in Salesforce.";
+						}
+						j$("div#description-text2").text(descriptionText2);
+						j$("div#description-text-wrapper").show();
+					}
+				});
+			}
+			function capitalize(string) {
+				return string.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase() }); 
+			}
+			function navigationBar () {
+				j$("span#syncSetup").removeClass("step-grey");
+				j$("span#syncSetup").addClass("step-current");
+				j$("span#arrowOne").removeClass("step-grey");
+				j$("span#arrowOne").addClass("step-current");
+				j$("span#autoMatching").removeClass("step-grey");
+				j$("span#autoMatching").addClass("step-current");
+				j$("span#arrowTwo").removeClass("step-grey");
+				j$("span#arrowTwo").addClass("step-current");
+				j$("span#manualMatching").removeClass("step-grey");
+				j$("span#manualMatching").addClass("step-current");
+			}
+
+			function loadCol () {
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.loadCol}',zdobject, sfdcobject, function(result, event) {
+					if (event.status) {
+						for(var i=0; i<result.col.length; i++){
+							col.push(result.col[i]);
+						}
+						col.push({
+							title: "Salesforce " + sfdcobjectCap,
+							data: "linked" + sfdcobjectCap,
+							defaultContent: "<input type='text' id='objectLookup'></input><img src='/img/func_icons/remove12.gif' id='removeMatch'/>"
+						});
+						loadData(offset);
+					}
+				});
+			}
+
+			function loadData(offset) {
+				Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.loadData}', offset, zdobject, sfdcobject,JOBID, function(result, event){
+					if(event.status){
+						if(result.endOfQuery){
+							loadTables(bulkResult, col);
+						}else{
+							for(var i=0; i < result.data.length; i++) {
+								bulkResult.push(result.data[i]);
+								// if(result.data[i].Matched_account__c !== '' && result.data[i].Matched_account__c !== null && typeof(result.data[i].Matched_account__c) !== 'undefined')
+
+							}
+							offset = result.data[result.data.length -1].Id;
+							loadData(offset);
+						}
+					}
+				});
+			}
+
+			function loadTables(data, col) {
+				var table = j$('#recordTable').DataTable({
+					//scrollY: "300px",
+					scrollX: true,
+					scrollCollapse: true,
+					pagingType: "full_numbers",
+					data: data,
+					columns: col,
+					dom: '<"top"B<"right"lf>>tip',
+					fixedHeader: true,
+					buttons: [
+	        			{ 
+	        				extend: 'colvis', 
+	        				text: 'Show/Hide Columns <svg class="slds-icon slds-icon--x-small down"> <use xlink:href="' +"{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#down')}" + '"></use></svg>' 
+	        			}
+					],
+					language: {
+					    lengthMenu: "Show: _MENU_",
+					    search: "_INPUT_",
+					    searchPlaceholder: "Search"
+					},
+	  				lengthMenu: [ 
+	  					[10, 25, 50, -1], 
+	  					["10 items", "25 items", "50 items", "All"] 
+					],
+					fixedColumns: {
+						leftColumns: 1,
+						rightColumns: 1
+					},
+					initComplete: function(settings, json) {
+						j$('#recordTable').on('keyup.dt', 'input', function() {
+							var searchTerm = j$(this).val();
+							j$(this).autocomplete({
+								autoFocus: true,
+								source: function(request, response) {
+									Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.autoComplete}', searchTerm, sfdcobject, function(result, event) {
+										if (event.status) {
+											response(j$.map(result, function(item) {
+												return {
+													label: item.Name,
+													value: item.Id
+												}
+											}));
+										}
+									});
+								},
+								minLength: 3,
+								delay: 1000,
+								select: function(event, ui) {
+									var d = table.row(this).data();
+									if(!checkForDuplicate(ui.item.value)){
+										switch (sfdcobject) {
+											case 'account':
+												d[PREFIX + 'Matched_account__c'] = ui.item.value;
+												break;
+											case 'contact':
+												d[PREFIX + 'Matched_contact__c'] = ui.item.value;
+												break;
+											case 'lead':
+												d[PREFIX + 'Matched_lead__c'] = ui.item.value;
+												break;
+										}
+										d[PREFIX + 'Matched_Record__c'] = ui.item.label;
+										table
+										 	.row(this)
+										 	.data(d)
+										 	.draw();
+									}else{
+										ui.item.value = null;
+										ui.item.label = null;
+										alert("Record already matched previously");
+									}
+								},
+								classes: {
+									"ui-autocomplete": "highlight"
+								}
+							});
+						});
+						//We need to bind the paste event because JQuery Automatch does not detect the copy/paste and treat it as one single entry which will be blocked by minLength
+						j$('#recordTable').on('paste.dt', 'input', function(){
+							var searchTerm = j$(this).val();
+							j$(this).autocomplete({
+								source: function(request, response) {
+									Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.autoComplete}', searchTerm, sfdcobject, function(result, event) {
+										if (event.status) {
+											response(j$.map(result, function(item) {
+												return {
+													label: item.Name,
+													value: item.Id
+												}
+											}));
+										}
+									});
+								},
+								select: function(event, ui) {
+									var d = table.row(this).data();
+									if(!checkForDuplicate(ui.item.value)){
+										switch (sfdcobject) {
+											case 'account':
+												d[PREFIX + 'Matched_account__c'] = ui.item.value;
+												break;
+											case 'contact':
+												d[PREFIX + 'Matched_contact__c'] = ui.item.value;
+												break;
+											case 'lead':
+												d[PREFIX + 'Matched_lead__c'] = ui.item.value;
+												break;
+										}
+										d[PREFIX + 'Matched_Record__c'] = ui.item.label;
+										table
+										 	.row(this)
+										 	.data(d)
+										 	.draw();
+									}else{
+										ui.item.value = null;
+										ui.item.label = null;
+										alert("Record already matched previously");
+									}
+								},
+								classes: {
+									"ui-autocomplete": "highlight"
+								},
+							});
+						});
+
+						j$('#recordTable').on('click.dt', 'img', function(){
+							var d = table.row(this).data();
+							switch (sfdcobject) {
+								case 'account':
+									d[PREFIX + 'Matched_account__c'] = null;
+									break;
+								case 'contact':
+									d[PREFIX + 'Matched_contact__c'] = null;
+									break;
+								case 'lead':
+									d[PREFIX + 'Matched_lead__c'] = null;
+									break;
+							}
+							d[PREFIX + 'Matched_Record__c'] = null;
+							table
+								.row(this)
+								.data(d)
+								.draw();
+						});
+					}
+				});
+
+				// CSS
+				j$('.dt-button').addClass('slds-button slds-button--neutral');
+				j$('.dataTables_length select').addClass('dropdown');
+
+				j$('#SaveOnly').on('click', function() {
+					j$('#spinner').show();
+					save(false);
+				})
+
+				j$('#SaveAndContinue').on('click', function() {
+					//Determin if check box need to be shown, as if choose not to create in salesforce we do not need to show
+					if(createRecordIn !== null && createRecordIn !== '' && createRecordIn !== 'Salesforce only' && createRecordIn !== 'Both'){
+						j$('div#checkboxWrapper').hide();
+						j$('button#modalContinue').removeAttr('disabled');
+					}
+					j$('div#warningDialogue').show();
+					// j$('#spinner').show();
+					// save(true);
+				})
+
+				j$('button#modalClose').on('click', function(){
+					j$('div#warningDialogue').hide()
+				});
+
+				j$('button#modalCancel').on('click', function(){
+					j$('input#confirmCheck').prop("checked", false);
+					j$('div#warningDialogue').hide();
+				});
+
+				j$('button#modalContinue').on('click', function(){
+					if(createRecordIn !== null && createRecordIn !== '' && (createRecordIn === 'Salesforce only' || createRecordIn === 'Both')){
+						if(j$('input#confirmCheck').is(':checked')){
+							save(true);
+							j$('#spinner').show();
+							j$('div#warningDialogue').hide();
+						}
+					} else {
+						save(true);
+						j$('#spinner').show();
+						j$('div#warningDialogue').hide();
+					}
+				});
+
+				j$('input#confirmCheck').change(function() {
+					if (j$(this).is(':checked')) {
+						j$('button#modalContinue').removeAttr('disabled');
+					} else {
+						j$('button#modalContinue').attr('disabled', 'disabled');
+					}
+				});
+
+				function checkForDuplicate(record) {
+
+					var matched = false;
+
+					for(var i=0; i<table.data().length; i++){
+						switch (sfdcobject) {
+							case 'account':
+								if (table.data()[i][PREFIX + 'Matched_account__c'] === record) 
+									matched = true;
+								break;
+							case 'contact':
+								if (table.data()[i][PREFIX + 'Matched_contact__c'] === record) 
+									matched = true;
+								break;
+							case 'lead':
+								if (table.data()[i][PREFIX + 'Matched_lead__c'] === record) 
+									matched = true;
+								break;
+						}
+					}
+					return matched
+				}
+
+				//controls execution of save batch
+				var batch = 1;
+				var processedBatch = 0;
+
+				function save(proceed) {
+					var payload = [];
+					processedBatch = 0;				
+					for(var i=0; i<table.data().length; i++) {
+						if(proceed){
+							switch (sfdcobject) {
+								case 'account':
+									if(table.data()[i][PREFIX + 'Matched_account__c'] !== null && table.data()[i][PREFIX + 'Matched_account__c'] !== '' && typeof(table.data()[i][PREFIX + 'Matched_account__c']) !== 'undefined')
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for update in Salesforce';
+									else
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for create in Salesforce';
+									break;
+								case 'contact':
+									if(table.data()[i][PREFIX + 'Matched_contact__c'] !== null && table.data()[i][PREFIX + 'Matched_contact__c'] !== '' && typeof(table.data()[i][PREFIX + 'Matched_contact__c']) !== 'undefined')
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for update in Salesforce';
+									else
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for create in Salesforce';
+									break;
+								case 'lead':
+									if(table.data()[i][PREFIX + 'Matched_lead__c'] !== null && table.data()[i][PREFIX + 'Matched_lead__c'] !== '' && typeof(table.data()[i][PREFIX + 'Matched_lead__c']) !== 'undefined')
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for update in Salesforce';
+									else
+										table.data()[i][PREFIX + 'Status__c'] = 'Waiting for create in Salesforce';
+									break;
+							}
+							
+						}
+						if(PREFIX == ''){
+							payload.push({Id: table.data()[i].Id, 
+										  Matched_account__c: table.data()[i].Matched_account__c, 
+										  Matched_contact__c: table.data()[i].Matched_contact__c,
+										  Matched_lead__c: table.data()[i].Matched_lead__c,
+										  Matched_Record__c: table.data()[i].Matched_Record__c,
+										  Status__c: table.data()[i].Status__c
+										})
+						}else{
+							payload.push({Id: table.data()[i].Id, 
+										  Zendesk__Matched_account__c: table.data()[i][PREFIX + 'Matched_account__c'], 
+										  Zendesk__Matched_contact__c: table.data()[i][PREFIX + 'Matched_contact__c'],
+										  Zendesk__Matched_lead__c: table.data()[i][PREFIX + 'Matched_lead__c'],
+										  Zendesk__Matched_Record__c: table.data()[i][PREFIX + 'Matched_Record__c'],
+										  Zendesk__Status__c: table.data()[i][PREFIX+'Status__c']
+										})
+						}
+						if(i%2000 === 0 && i !== 0){  //Batch of 2000
+							saveRemote(payload, proceed);
+							batch ++;
+							payload = [];
+						}
+
+					}
+					if(payload.length > 0){
+						saveRemote(payload, proceed);
+					}
+				}
+
+				function saveRemote (payload, proceed) {
+					Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.save}',JSON.stringify(payload), function(result, event){
+						if (event.status) {
+							processedBatch++;
+							if(processedBatch == batch) {
+								if (proceed) {
+									Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.BulkSyncManualMatchCtrl.proceed}', zdobject, sfdcobject, function(result, event){
+										if(event.status){
+											navigateToURL("/apex/"+ PREFIX +"BulkSyncMonitor?jobid="+JOBID);
+										}
+									});
+								} else {
+									navigateToURL("/apex/"+ PREFIX +"BulkSyncMonitor?jobid="+JOBID);
+								}
+							}					
+						}
+					});
+				}
+			}
+		})(jQuery);
+	</script>
+	<c:BulkSyncNav />
+	<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<div class="main-content slds-is-relative">
+		<!-- SPINNER -->
+		<div id="spinner" class="slds-modal slds-fade-in-open slds-spinner_container spinner-container" style="display: none;">
+			<div class="slds-spinner_container" role="alert">
+				<div aria-role="status" role="status" class="slds-spinner slds-spinner--medium slds-spinner--brand">
+					<div class="slds-spinner__dot-a"></div>
+					<div class="slds-spinner__dot-b"></div>
+					<div class="spinner-text">Saving</div>
+				</div>
+			</div>
+		</div>
+		<!-- END OF SPinner -->
+		<div class="header-text">Zendesk Support Bulk Sync - Manual Matching</div>
+		<div id="description-text-wrapper" class="description-text slds-hide">
+			<div id="description-text"></div>
+			<div id="description-text2"></div>
+		</div>
+		<div id="recordTableDiv">
+			<table id="recordTable" class="slds-table slds-table--striped slds-no-row-hover" cellspacing="0" width="100%">
+			</table>
+		</div>
+		<div  id="warningDialogue"  style="display:none">
+			<div role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-modal slds-fade-in-open">
+			  <div class="slds-modal__container">
+			    <div class="slds-modal__header">
+			      <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" id="modalClose">
+			        <svg aria-hidden="true" class="slds-button__icon slds-button__icon--large">
+			          <use xlink:href="{!URLFOR($Resource.slds, 'assets/icons/utility-sprite/svg/symbols.svg#close')}"></use>
+			        </svg>
+			        <span class="slds-assistive-text">Close</span>
+			      </button>
+			      <h2 id="header43" class="slds-text-heading--medium">Continue with sync</h2>
+			    </div>
+			    <div class="slds-modal__content slds-p-around--medium">
+			      <div style="white-space: normal;">
+			        <p class="modalText marginBottom15">Are you sure you want to proceed? You will not be able to make new changes. Use Save Progress if you want to return to this page later.</p>
+			        <p>
+				        <div id="checkboxWrapper" class="slds-form-element">
+						  <div class="slds-form-element__control">
+						    <span class="slds-checkbox">
+						      <input type="checkbox" name="options" id="confirmCheck" checked="" />
+						      <label class="slds-checkbox__label" for="confirmCheck">
+						        <span class="slds-checkbox--faux"></span>
+						        <span class="modalText" id="confirmation-text"></span>
+						      </label>
+						    </span>
+						  </div>
+						</div>
+				    </p>
+			      </div>
+			    </div>
+			    <div class="slds-modal__footer">
+			      <button class="slds-button slds-button--neutral" id="modalCancel">Cancel</button>
+			      <button class="slds-button slds-button--brand" id="modalContinue" disabled="disabled">Continue</button>
+			    </div>
+			  </div>
+			</div>
+			<div class="slds-backdrop slds-backdrop--open"></div>
+		</div>
+	</div>
+	<div class="footer footer-align-right">
+		<button id="SaveOnly" class="slds-button slds-button--neutral">Save Progress</button>
+		<button id="SaveAndContinue" class="slds-button slds-button--brand">Save and continue</button>
+	</div>
+	</html>
+</apex:page>
